@@ -11,7 +11,7 @@ const App = () => {
             <div className='sticky top-0 left-0 h-full'>
                 <Sidebar />
             </div>
-            <div className='flex-1 lg:max-w-[calc(100vw-325px)] max-w-full overflow-hidden'>
+            <div className='flex-1 lg:max-w-[calc(100vw-275px)] max-w-full overflow-hidden'>
                 <Header />
                 <Outlet />
             </div>

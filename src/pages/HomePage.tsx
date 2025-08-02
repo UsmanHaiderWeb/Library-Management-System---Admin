@@ -71,9 +71,9 @@ const HomePage = () => {
                             </CardDescription>
                             <CardTitle className="text-3xl mt-2">317</CardTitle>
                         </div>
-                        <div>
+                        <Link to="/users">
                             <Button size='sm' variant='greenOutline'>View All</Button>
-                        </div>
+                        </Link>
                     </CardHeader>
                 </Card>
                 <Card>
@@ -102,7 +102,7 @@ const HomePage = () => {
                             <Button variant="blueOutline" size='sm'>View all</Button>
                         </CardHeader>
                         <CardContent>
-                            {mockBooks.length !== 0 ? (
+                            {mockBooks?.length !== 0 ? (
                                 <div className="flex flex-col items-center justify-center pb-6">
                                     {/* Placeholder for illustration */}
                                     <div className="mb-6">
@@ -191,7 +191,7 @@ const HomePage = () => {
                             <Button variant="blueOutline" size='sm'>View all</Button>
                         </CardHeader>
                         <CardContent>
-                            {mockUsers.length === 0 ? (
+                            {mockUsers?.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center pb-2">
                                     {/* Placeholder for illustration */}
                                     <div className="mb-6">

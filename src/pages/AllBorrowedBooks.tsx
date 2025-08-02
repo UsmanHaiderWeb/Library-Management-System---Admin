@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { memo, useEffect, useRef, useState } from "react"
-import { userColumn } from "./Table/columns"
+import { borrowedBooksColumns } from "./Table/columns"
 import { DataTable } from "./Table/data-table"
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/AxiosCalls";
-import { UserInfoType } from "@/lib/types&interfaces";
+import { AllBorrowedBooksTableInterface } from "@/lib/types&interfaces";
 
-const fetchAllAccountRequests = async ({ token, pageNumber, searchQuery }: { token: string, pageNumber: number, searchQuery: string }) => {
-    const { data } = await api.get(`/api/admin/getAllAccountRequests?pageNumber=${pageNumber}&searchQuery=${searchQuery}`, {
+const fetchBorrowedBooks = async ({ token, pageNumber, searchQuery }: { token: string, pageNumber: number, searchQuery: string }) => {
+    const { data } = await api.get(`/api/admin/all-borrowed-books?pageNumber=${pageNumber}&searchQuery=${searchQuery}`, {
         headers: {
             'Authorization': `Bearer ${token}`,
         },
@@ -17,16 +17,16 @@ const fetchAllAccountRequests = async ({ token, pageNumber, searchQuery }: { tok
     return data;
 }
 
-function AllAccountRequests() {
+function BorrowedBooks() {
     const [pageNumber, setPageNumber] = useState(0);
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [searchQueryForApi, setSearchQueryForApi] = useState<string>('');
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
     const token = localStorage.getItem('adminToken') || '';
 
-    const { data, isPending, refetch } = useQuery<{ totalPages: number, users: UserInfoType[] }>({
-        queryKey: ['all-account-requests', pageNumber, searchQueryForApi || 'nothing to query'],
-        queryFn: () => fetchAllAccountRequests({ token, pageNumber, searchQuery: searchQueryForApi }),
+    const { data, isPending, refetch } = useQuery<{ totalPages: number, requests: AllBorrowedBooksTableInterface[] }>({
+        queryKey: ['all-borrowed-books', pageNumber, searchQueryForApi || 'nothing to query'],
+        queryFn: () => fetchBorrowedBooks({ token, pageNumber, searchQuery: searchQueryForApi }),
         enabled: !!token,
         staleTime: 1000 * 60 * 5,
         refetchOnWindowFocus: false,
@@ -43,7 +43,7 @@ function AllAccountRequests() {
         typingTimeoutRef.current = setTimeout(() => {
             console.log("Sending API call with:", searchQuery)
             setSearchQueryForApi(searchQuery);
-        }, 3000) // 3 second debounce
+        }, 2000) // 2 second debounce
 
         return () => {
             clearTimeout((typingTimeoutRef.current as any))
@@ -53,8 +53,8 @@ function AllAccountRequests() {
     return (
         <div className="px-7 w-full pb-10">
             <DataTable
-                data={data?.users || []}
-                columns={userColumn}
+                data={data?.requests || []}
+                columns={borrowedBooksColumns}
                 pageNumber={pageNumber}
                 setPageNumber={setPageNumber}
                 totalPages={data?.totalPages || 1}
@@ -66,4 +66,4 @@ function AllAccountRequests() {
         </div>
     )
 }
-export default memo(AllAccountRequests)
+export default memo(BorrowedBooks)

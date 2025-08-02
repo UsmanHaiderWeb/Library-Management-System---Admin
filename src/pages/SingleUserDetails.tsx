@@ -103,7 +103,7 @@ const SingleUserDetails = () => {
                     columns={borrowedBooksColumns}
                     pageNumber={pageNumber}
                     setPageNumber={setPageNumber}
-                    totalPages={borrowedBooks.length - 1}
+                    totalPages={borrowedBooks?.length - 1}
                     placeHolder="Find books by name"
                 />
             </div>

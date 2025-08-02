@@ -13,7 +13,7 @@ const Header: React.FC<HeaderProps> = ({ name = 'Adrian Hajdin', email = 'adrian
         <header className="px-8 py-4 flex items-center justify-between">
             <div>
                 <h1 className="text-2xl font-semibold text-gray-800">Welcome, {name.split(' ')[0]}</h1>
-                <p className="text-gray-500 text-sm">Monitor all of your projects and tasks here</p>
+                <p className="text-gray-500 text-sm">Monitor all of your users and books from here</p>
             </div>
             <div className="flex items-center bg-white rounded-full shadow px-1 py-1 gap-3 border border-gray-200">
                 <div className="relative">

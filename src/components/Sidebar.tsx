@@ -1,62 +1,80 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Users, BookOpen, ClipboardList, UserPlus } from 'lucide-react';
+import { Home, Users, BookOpen, ClipboardList, ListTodoIcon } from 'lucide-react';
 
 export default function Sidebar() {
     return (
-        <aside className="h-screen w-80 bg-white border-r flex flex-col py-6 px-4">
-            <div className="flex items-center gap-3 mb-8 px-2">
+        <aside className="h-screen w-72 bg-white border-r flex flex-col py-6 px-4">
+            <div className="flex items-center gap-3 mb-4 px-2">
                 <div className="bg-blue rounded-full p-2">
-                    <BookOpen className="text-white w-7 h-7" />
+                    <BookOpen className="text-white w-5 h-5" />
                 </div>
-                <span className="text-2xl font-bold text-bluebg-blue">GICCL -Library</span>
+                <span className="text-xl font-bold text-bluebg-blue">GICCL -Library</span>
             </div>
-            <div className="border-b border-dotted border-gray-300 mb-6" />
-            <nav className="flex flex-col gap-2">
+            <div className="border-b border-dotted border-gray-300 mb-4" />
+            <nav className="flex flex-col space-y-1">
                 <NavLink
                     to="/"
                     className={({ isActive }) =>
-                        `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue text-white' : 'text-gray-700 hover:bg-gray-100'}`
+                        `text-[15px] flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue text-white' : 'text-gray-700 hover:bg-gray-100'}`
                     }
                 >
-                    <Home className="w-5 h-5" />
+                    <Home className="w-4 h-4" />
                     Home
                 </NavLink>
+                {/* <NavLink
+                    to="/analysis"
+                    className={({ isActive }) =>
+                        `text-[15px] flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue text-white' : 'text-gray-700 hover:bg-gray-100'}`
+                    }
+                >
+                    <BarChart2 className="w-4 h-4" />
+                    Analysis
+                </NavLink> */}
                 <NavLink
                     to="/users"
                     className={({ isActive }) =>
-                        `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue text-white' : 'text-gray-700 hover:bg-gray-100'}`
+                        `text-[15px] flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue text-white' : 'text-gray-700 hover:bg-gray-100'}`
                     }
                 >
-                    <Users className="w-5 h-5" />
+                    <Users className="w-4 h-4" />
                     All Users
                 </NavLink>
                 <NavLink
                     to="/books"
                     className={({ isActive }) =>
-                        `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue text-white' : 'text-gray-700 hover:bg-gray-100'}`
+                        `text-[15px] flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue text-white' : 'text-gray-700 hover:bg-gray-100'}`
                     }
                 >
-                    <BookOpen className="w-5 h-5" />
+                    <BookOpen className="w-4 h-4" />
                     All Books
+                </NavLink>
+                <NavLink
+                    to="/borrowed-books"
+                    className={({ isActive }) =>
+                        `text-[15px] flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue text-white' : 'text-gray-700 hover:bg-gray-100'}`
+                    }
+                >
+                    <ListTodoIcon className="w-4 h-4" />
+                    Borrowed Books
                 </NavLink>
                 <NavLink
                     to="/borrow-requests"
                     className={({ isActive }) =>
-                        `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue text-white' : 'text-gray-700 hover:bg-gray-100'}`
+                        `text-[15px] flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue text-white' : 'text-gray-700 hover:bg-gray-100'}`
                     }
                 >
-                    <ClipboardList className="w-5 h-5" />
+                    <ClipboardList className="w-4 h-4" />
                     Borrow Requests
                 </NavLink>
-                <NavLink
+                {/* <NavLink
                     to="/account-requests"
                     className={({ isActive }) =>
-                        `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue text-white' : 'text-gray-700 hover:bg-gray-100'}`
+                        `text-[15px] flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue text-white' : 'text-gray-700 hover:bg-gray-100'}`
                     }
                 >
-                    <UserPlus className="w-5 h-5" />
+                    <UserPlus className="w-4 h-4" />
                     Account Requests
-                </NavLink>
+                </NavLink> */}
             </nav>
         </aside>
     );

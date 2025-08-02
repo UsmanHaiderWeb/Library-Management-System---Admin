@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 export type BookCoverVariant = "extraSmall" | "small" | "medium" | "regular" | "wide";
 
 export interface UserInfoType {
@@ -23,12 +21,58 @@ export interface BorrowedBookInterface {
     status: 'borrowed' | 'overdue' | 'returned';
 }
 
-export const taskSchema = z.object({
-    id: z.string(),
-    title: z.string(),
-    status: z.string(),
-    label: z.string(),
-    priority: z.string(),
-})
+export interface BookInterface {
+    id: string;
+    bookNumber: string;
+    bookName: string;
+    author: string;
+    createdAt: string;
+    genre: string;
+    almirahNumber: string;
+    shelfNumber: string;
+    image: string;
+    totalBooks: number;
+    _count: {
+        BorrowedRequests: string;
+        copies: number
+    }
+}
 
-export type Task = z.infer<typeof taskSchema>
+export interface AllBorrowedBooksTableInterface {
+    id: string;
+    user: {
+        id: string;
+        name: string;
+        studentId: string;
+    }
+    bookCopy: {
+        book: {
+            id: string;
+            bookNumber: string;
+            bookName: true;
+        };
+    }
+    borrowedOn: string;
+    status: "borrowed" | "returned";
+    dueDate: string;
+    returnedOn: string;
+}
+
+
+export interface AllBorrowRequestsTableInterface {
+    id: boolean;
+    user: {
+        id: boolean;
+        name: string;
+        studentId: string;
+    };
+    book: {
+        id: boolean;
+        bookNumber: string;
+        bookName: string;
+        author: string;
+        genre: string;
+    };
+    requestedOn: string;
+    status: "accepted" | "rejected" | "pending";
+}

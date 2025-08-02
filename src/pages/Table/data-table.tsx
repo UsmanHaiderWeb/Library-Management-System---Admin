@@ -20,6 +20,7 @@ import {
 import {
     Table,
     TableBody,
+    TableCaption,
     TableCell,
     TableHead,
     TableHeader,
@@ -29,6 +30,7 @@ import {
 import { DataTablePagination } from "./data-table-pagination"
 import { DataTableToolbar } from "./data-table-toolbar"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import BoxSpinLoader from "@/components/loaders/BoxSpinLoader"
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
@@ -38,6 +40,9 @@ interface DataTableProps<TData, TValue> {
     totalPages?: number
     placeHolder?: string
     refetchData?: any
+    loadingData?: boolean;
+    searchQuery?: string;
+    setSearchQuery?: React.Dispatch<React.SetStateAction<string>>
 }
 
 export function DataTable<TData, TValue>({
@@ -48,6 +53,9 @@ export function DataTable<TData, TValue>({
     totalPages,
     placeHolder,
     refetchData,
+    loadingData = true,
+    searchQuery,
+    setSearchQuery,
 }: DataTableProps<TData, TValue>) {
     const [rowSelection, setRowSelection] = React.useState({})
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
@@ -91,7 +99,7 @@ export function DataTable<TData, TValue>({
 
     return (
         <div className="w-full space-y-2">
-            <DataTableToolbar table={table} placeHolder={placeHolder || ''} refetchData={refetchData} />
+            <DataTableToolbar table={table} placeHolder={placeHolder || ''} refetchData={refetchData} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
             <ScrollArea className="w-full border rounded-md">
                 <div className="space-y-4 w-full min-w-[800px] pb-1">
                     <div>
@@ -114,40 +122,48 @@ export function DataTable<TData, TValue>({
                                     </TableRow>
                                 ))}
                             </TableHeader>
-                            <TableBody>
-                                {table.getRowModel().rows?.length ? (
-                                    table.getRowModel().rows.map((row) => (
-                                        <TableRow
-                                            key={row.id}
-                                            data-state={row.getIsSelected() && "selected"}
-                                        >
-                                            {row.getVisibleCells().map((cell) => (
-                                                <TableCell key={cell.id}>
-                                                    {flexRender(
-                                                        cell.column.columnDef.cell,
-                                                        cell.getContext()
-                                                    )}
-                                                </TableCell>
-                                            ))}
+                            {loadingData ?
+                                <TableCaption className="h-40 mt-0">
+                                    <div className="w-full h-full flex justify-center items-center">
+                                        <BoxSpinLoader />
+                                    </div>
+                                </TableCaption>
+                                :
+                                <TableBody>
+                                    {table.getRowModel().rows?.length ? (
+                                        table.getRowModel().rows.map((row) => (
+                                            <TableRow
+                                                key={row.id}
+                                                data-state={row.getIsSelected() && "selected"}
+                                            >
+                                                {row.getVisibleCells().map((cell) => (
+                                                    <TableCell key={cell.id}>
+                                                        {flexRender(
+                                                            cell.column.columnDef.cell,
+                                                            cell.getContext()
+                                                        )}
+                                                    </TableCell>
+                                                ))}
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell
+                                                colSpan={columns?.length}
+                                                className="h-24 text-center"
+                                            >
+                                                No results.
+                                            </TableCell>
                                         </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell
-                                            colSpan={columns.length}
-                                            className="h-24 text-center"
-                                        >
-                                            No results.
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
+                                    )}
+                                </TableBody>
+                            }
                         </Table>
                     </div>
                 </div>
                 <ScrollBar orientation="horizontal" />
             </ScrollArea>
-            <div className="w-full">
+            <div className="w-full" style={{pointerEvents: loadingData ? 'none' : 'all' }}>
                 <DataTablePagination table={table} />
             </div>
         </div>

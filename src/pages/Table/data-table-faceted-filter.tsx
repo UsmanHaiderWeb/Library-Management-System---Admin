@@ -37,8 +37,10 @@ export function DataTableFacetedFilter<TData, TValue>({
     title,
     options,
 }: DataTableFacetedFilterProps<TData, TValue>) {
-    const facets = column?.getFacetedUniqueValues()
-    const selectedValues = new Set(column?.getFilterValue() as string[])
+    if (!column) return null;
+
+    const facets = column.getFacetedUniqueValues();
+    const selectedValues = new Set((column.getFilterValue() as string[]) ?? []);
 
     return (
         <Popover>
@@ -100,7 +102,7 @@ export function DataTableFacetedFilter<TData, TValue>({
                                             }
                                             const filterValues = Array.from(selectedValues)
                                             column?.setFilterValue(
-                                                filterValues.length ? filterValues : undefined
+                                                filterValues?.length ? filterValues : undefined
                                             )
                                         }}
                                     >

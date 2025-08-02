@@ -1,22 +1,23 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/rules-of-hooks */
-"use client"
-
 import { ColumnDef } from "@tanstack/react-table"
-
 import { Badge } from "@/components/ui/badge"
-// import { Checkbox } from "@/components/ui/checkbox"
-
-import { labels, priorities, statuses } from "./data"
 import { DataTableColumnHeader } from "./data-table-column-header"
-import { BorrowedBookInterface, Task, UserInfoType } from "@/lib/types&interfaces"
+import { AllBorrowedBooksTableInterface, AllBorrowRequestsTableInterface, BookInterface, UserInfoType } from "@/lib/types&interfaces"
 import DenyAccountRequest from "@/components/DenyAccountRequest"
 import ApproveAccountRequest from "@/components/ApproveAccountRequest"
-import { useMutation } from "@tanstack/react-query"
-import axios from "axios"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { AlertDialogCancel, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogContent, AlertDialogDescription, AlertDialog } from "@/components/ui/alert-dialog"
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { CheckCircle, X } from "lucide-react"
+import { api } from "@/lib/AxiosCalls"
+import { useLocation } from "react-router-dom"
+import { format } from "date-fns";
 
-export const columns: ColumnDef<Task>[] = [
+
+export const bookTableColumns: ColumnDef<BookInterface>[] = [
     // {
     //   id: "select",
     //   header: ({ table }) => (
@@ -42,24 +43,25 @@ export const columns: ColumnDef<Task>[] = [
     //   enableHiding: false,
     // },
     {
-        accessorKey: "id",
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Book Number" />
-        ),
-        cell: ({ row }) => <div>{row.original.id}</div>,
+        id: "id",
+        header: () => "Sr.",
+        cell: ({ row }) => <div>{row.index + 1}</div>,
         enableSorting: false,
         enableHiding: false,
     },
     {
-        accessorKey: "title",
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Book Name" />
-        ),
+        accessorKey: "id",
+        header: () => "Book Number",
+        cell: ({ row }) => <div>{row?.original.bookNumber}</div>,
+    },
+    {
+        accessorKey: "bookName",
+        header: () => "Book Name",
         cell: ({ row }) => {
             return (
                 <div className="flex space-x-2">
                     <span className="max-w-[250px] truncate font-medium">
-                        {row.getValue("title")}
+                        {row.getValue("bookName")}
                     </span>
                 </div>
             )
@@ -69,28 +71,11 @@ export const columns: ColumnDef<Task>[] = [
         accessorKey: "author",
         header: () => "Author",
         cell: ({ row }) => {
-            const label = labels.find((label) => label.value === row.original.label)
-            const colors = [
-                "#FF6B6B", // Coral Red
-                "#4ECDC4", // Turquoise
-                "#45B7D1", // Sky Blue
-                "#96CEB4", // Sage Green
-                "#FFEEAD", // Cream
-                "#D4A5A5", // Dusty Rose
-                "#9B59B6", // Purple
-                "#3498DB", // Blue
-                "#E67E22", // Orange
-                "#2ECC71", // Emerald
-                "#F1C40F", // Yellow
-                "#1ABC9C", // Teal
-                "#E74C3C", // Red
-                "#34495E", // Dark Blue
-                "#16A085", // Dark Teal
-            ]
-
             return (
                 <div className="flex space-x-2">
-                    {label && <Badge variant="outline" className={`border-[${colors[Math.round(Math.random() * colors.length)]}]`}>{label.label}</Badge>}
+                    <span className="max-w-[250px] truncate font-medium">
+                        {row.getValue("author")}
+                    </span>
                 </div>
             )
         },
@@ -98,28 +83,10 @@ export const columns: ColumnDef<Task>[] = [
     {
         accessorKey: "genre",
         header: () => "Genre",
-        cell: () => {
-            const status = statuses[0];
-
+        cell: ({ row }) => {
             return (
                 <div className="max-w-[120px] truncate">
-                    <span>{status.label}</span>
-                </div>
-            )
-        },
-    },
-    {
-        accessorKey: "added On",
-        header: () => "Added On",
-        cell: () => {
-            const priority = priorities[2];
-
-            return (
-                <div className="flex w-[100px] items-center">
-                    {priority.icon && (
-                        <priority.icon className="mr-2 h-4 w-4 text-muted-foreground" />
-                    )}
-                    <span>{priority.label}</span>
+                    <span>{row.getValue("genre")}</span>
                 </div>
             )
         },
@@ -127,11 +94,36 @@ export const columns: ColumnDef<Task>[] = [
     {
         accessorKey: "isAvailable",
         header: () => "Available",
-        cell: () => {
-            const isAvailable = Math.round(Math.random());
+        cell: ({ row }) => {
+            const isAvailable = row?.original?._count?.copies > 0;
             return (
                 <div className="flex space-x-2">
                     <Badge variant="outline" className={isAvailable ? 'bg-[#ECFDF3] text-green-700' : `bg-pink-50 text-pink-700`}>{isAvailable ? "Available" : "Not Available"}</Badge>
+                </div>
+            )
+        },
+        filterFn: (row, id, value) => {
+            return value.includes(row.getValue(id));
+        },
+    },
+    {
+        accessorKey: "almirahNumber",
+        header: () => "Almirah",
+        cell: ({ row }) => {
+            return (
+                <div className="w-[50px] text-center">
+                    <span>{row?.original?.almirahNumber}</span>
+                </div>
+            )
+        },
+    },
+    {
+        accessorKey: "shelfNumber",
+        header: () => "Shelf",
+        cell: ({ row }) => {
+            return (
+                <div className="w-[40px] text-center">
+                    <span>{row?.original?.shelfNumber}</span>
                 </div>
             )
         },
@@ -139,10 +131,10 @@ export const columns: ColumnDef<Task>[] = [
     {
         accessorKey: "totalBooks",
         header: () => <span className="text-center">Total Books</span>,
-        cell: () => {
+        cell: ({ row }) => {
             return (
                 <div className="text-center">
-                    <span>{Math.round(Math.random() * 10)}</span>
+                    <span>{row?.original?.totalBooks}</span>
                 </div>
             )
         },
@@ -150,10 +142,21 @@ export const columns: ColumnDef<Task>[] = [
     {
         accessorKey: "borrowedBooks",
         header: () => <span className="text-center">Borrowed Books</span>,
-        cell: () => {
+        cell: ({ row }) => {
             return (
                 <div className="text-center">
-                    <span>{Math.round(Math.random() * 10)}</span>
+                    <span>{row?.original?.totalBooks - row?.original?._count?.copies}</span>
+                </div>
+            )
+        },
+    },
+    {
+        accessorKey: "createdAt",
+        header: () => "Added On",
+        cell: ({ row }) => {
+            return (
+                <div className="flex w-[100px] items-center">
+                    <span>{row?.original?.createdAt ? new Date(row?.original?.createdAt).toLocaleDateString('en-GB') : 'N/A'}</span>
                 </div>
             )
         },
@@ -296,7 +299,7 @@ export const userColumn: ColumnDef<UserInfoType & { _count: { borrowedBooks: 0, 
         cell: ({ row }) => {
             return (
                 <div className="flex w-[100px] items-center">
-                    <span>{row.original?._count?.borrowedBooks || "N/A"}</span>
+                    <span>{row?.original?._count?.borrowedBooks || "N/A"}</span>
                 </div>
             )
         },
@@ -307,7 +310,7 @@ export const userColumn: ColumnDef<UserInfoType & { _count: { borrowedBooks: 0, 
         cell: ({ row }) => {
             return (
                 <div className="flex w-[100px] items-center">
-                    <span>{row.original?.createdAt ? new Date(row.original.createdAt).toLocaleDateString('en-GB') : 'N/A'}</span>
+                    <span>{row?.original?.createdAt ? new Date(row?.original?.createdAt).toLocaleDateString('en-GB') : 'N/A'}</span>
                 </div>
             )
         },
@@ -426,7 +429,7 @@ export const requestedAccountColumns: ColumnDef<UserInfoType>[] = [
         cell: ({ row }) => {
             return (
                 <div className="flex w-[100px] items-center">
-                    <span>{row.original?.joinedAt}</span>
+                    <span>{row?.original?.createdAt}</span>
                 </div>
             )
         },
@@ -437,34 +440,39 @@ export const requestedAccountColumns: ColumnDef<UserInfoType>[] = [
         cell: ({ row }) => {
             return (
                 <div className="flex items-center gap-3">
-                    <ApproveAccountRequest studentId={row.original.studentId} />
-                    <DenyAccountRequest studentId={row.original.studentId} />
+                    <ApproveAccountRequest studentId={row?.original.studentId} />
+                    <DenyAccountRequest studentId={row?.original.studentId} />
                 </div>
             )
         },
     },
 ]
 
-export const borrowedBooksColumns: ColumnDef<BorrowedBookInterface>[] = [
+export const requestForBorrowingBooksColumns: ColumnDef<AllBorrowRequestsTableInterface>[] = [
     {
-        accessorKey: "id",
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Book Number" />
-        ),
-        cell: ({ row }) => <div>{row.original.id}</div>,
+        id: "id",
+        header: () => "Sr.",
+        cell: ({ row }) => <div>{row.index + 1}</div>,
         enableSorting: false,
         enableHiding: false,
     },
     {
-        accessorKey: "title",
+        accessorKey: "bookNumber",
         header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Book Name" />
+            <DataTableColumnHeader column={column} title="Book Number" />
         ),
+        cell: ({ row }) => <div>{row?.original?.book?.bookNumber}</div>,
+        enableSorting: false,
+        enableHiding: false,
+    },
+    {
+        accessorKey: "bookName",
+        header: () => "Book Name",
         cell: ({ row }) => {
             return (
                 <div className="flex space-x-2">
                     <span className="max-w-[250px] truncate">
-                        {row.getValue("title")}
+                        {row?.original?.book?.bookName}
                     </span>
                 </div>
             )
@@ -476,18 +484,264 @@ export const borrowedBooksColumns: ColumnDef<BorrowedBookInterface>[] = [
         cell: ({ row }) => {
             return (
                 <div className="w-32 truncate">
-                    {row.getValue("author")}
+                    {row?.original?.book?.author}
                 </div>
             )
         },
     },
     {
-        accessorKey: "borrowedBy",
-        header: () => <span>Borrowed By</span>,
+        accessorKey: "studentName",
+        header: () => <span>Student Name</span>,
         cell: ({ row }) => {
             return (
                 <div className="w-24 truncate">
-                    <span>{row.original?.borrowedBy?.name}</span>
+                    <span>{row?.original?.user?.name}</span>
+                </div>
+            )
+        },
+    },
+    {
+        accessorKey: "studentId",
+        header: () => <span>Student Id</span>,
+        cell: ({ row }) => {
+            return (
+                <div className="w-24 truncate">
+                    <span>{row?.original?.user?.studentId}</span>
+                </div>
+            )
+        },
+    },
+    {
+        accessorKey: "status",
+        header: () => "Request Status",
+        cell: ({ row }) => {
+            const colorAgainstStatuses = {
+                "accepted": "text-green-700",
+                "rejected": "text-pink-700",
+                "pending": "text-blue-700",
+            }
+            const status = row?.original?.status;
+            return (
+                <div className="flex space-x-2">
+                    <Badge variant="outline" className={`${colorAgainstStatuses[status]} bg-[#ECFDF3]`}>{status}</Badge>
+                </div>
+            )
+        },
+    },
+    {
+        accessorKey: "requestedOn",
+        header: () => <span>Requested On</span>,
+        cell: ({ row }) => {
+            return (
+                <div>
+                    <span>{row?.original?.requestedOn}</span>
+                </div>
+            )
+        },
+    },
+    {
+        accessorKey: "actions",
+        header: () => "Actions",
+        cell: ({ row }) => {
+            // State to control the visibility of the alert dialog
+            const [isAlertOpen, setIsAlertOpen] = useState(false);
+            const queryClient = useQueryClient();
+            const { state }: { state: { pageNumber: number, searchQuery: string } } = useLocation();
+
+            // The book data from the current row
+            const bookRequest = row.original;
+
+            const changeBookStatusMutation = useMutation({
+                mutationKey: ['change-borrow-book-status', bookRequest.id],
+                // The mutation function now accepts an object with the status
+                mutationFn: async (variables: { status: 'accepted' | 'rejected' }) => {
+                    const token = localStorage.getItem("adminToken");
+                    const { data } = await api.post(`/api/admin/borrow-requests/change-status/${bookRequest.id}`,
+                        { status: variables.status },
+                        {
+                            headers: {
+                                Authorization: `Bearer ${token}`
+                            },
+                            withCredentials: true,
+                        }
+                    );
+                    console.log("return response: ", data);
+                    return data;
+                },
+                onError: (error) => {
+                    console.error("Mutation Error:", error);
+                    toast.error("Something went wrong. Please try again.", {
+                        icon: <X stroke="red" />,
+                    });
+                },
+                onSuccess: (data: { status: string }) => {
+                    console.log("data: ", data);
+                    toast.success("Book status updated successfully!", {
+                        icon: <CheckCircle stroke="green" />,
+                    });
+
+                    // update the borrow request status with your actual query key
+                    queryClient.setQueryData(
+                        ['borrow-requests', state?.pageNumber || 0, state?.searchQuery || 'nothing to query'],
+                        (oldData: { totalPages: number, requests: AllBorrowRequestsTableInterface[] }) => {
+
+                            if (oldData?.requests && oldData?.requests.length) {
+                                const newData = oldData?.requests.map((request: AllBorrowRequestsTableInterface) => {
+                                    if (request?.id == row?.original?.id) {
+                                        return {
+                                            ...request,
+                                            status: data?.status,
+                                        }
+                                    } else return request;
+                                })
+                                return {
+                                    totalPages: oldData?.totalPages,
+                                    requests: newData
+                                };
+                            }
+                            return oldData;
+                        }
+                    );
+                    console.log("state?.searchQuery || state?.searchQuery != 'nothing to query': ", state?.searchQuery && state?.searchQuery != 'nothing to query');
+                    console.log("state?.searchQuery", state?.searchQuery);
+                    if (state?.searchQuery && state?.searchQuery != 'nothing to query') {
+                        // queryClient.setQueryData(
+                        //     ['borrow-requests', 0, 'nothing to query'],
+                        //     (oldData: { totalPages: number, requests: AllBorrowRequestsTableInterface[] }) => {
+
+                        //         if (oldData?.requests && oldData?.requests.length) {
+                        //             const newData = oldData?.requests.map((request: AllBorrowRequestsTableInterface) => {
+                        //                 if (request?.id == row?.original?.id) {
+                        //                     return {
+                        //                         ...request,
+                        //                         status: data?.status,
+                        //                     }
+                        //                 } else return request;
+                        //             })
+                        //             return {
+                        //                 totalPages: oldData?.totalPages,
+                        //                 requests: newData
+                        //             };
+                        //         }
+                        //         return oldData;
+                        //     }
+                        // );
+
+                        queryClient.invalidateQueries({ queryKey: ['borrow-requests', 0, 'nothing to query'] }); // Replace with your actual query key
+                    }
+
+                    setIsAlertOpen(false); // Close the dialog on success
+                },
+            });
+
+            return (
+                <>
+                    {/* Button to trigger the alert dialog */}
+                    {row?.original?.status == "pending" ?
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsAlertOpen(true)}
+                            disabled={changeBookStatusMutation?.isPending}
+                        >
+                            {changeBookStatusMutation?.isPending ? "Updating" : "Update Status"}
+                        </Button>
+                        : "N/A"
+                    }
+
+                    {/* Alert Dialog for confirmation */}
+                    <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Confirm Status Change</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    You are about to change the borrowing status for:
+                                    <span className="mt-2 font-medium text-black">
+                                        <span className="block">User: {bookRequest?.user?.name}</span>
+                                        <span className="block">Student ID: {bookRequest?.user?.studentId}</span>
+                                    </span>
+                                    <span className="block mt-3">Please select the new status below.</span>
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter className="w-full flex justify-between sm:justify-between">
+                                <AlertDialogCancel>Back</AlertDialogCancel>
+                                <div className="flex gap-2">
+                                    {/* Reject Button */}
+                                    <Button
+                                        variant="destructive"
+                                        onClick={() => {
+                                            changeBookStatusMutation.mutate({ status: 'rejected' });
+                                        }}
+                                        disabled={changeBookStatusMutation.isPending}
+                                    >
+                                        {changeBookStatusMutation.isPending ? 'Updating...' : 'Reject'}
+                                    </Button>
+                                    {/* Accept Button */}
+                                    <Button
+                                        onClick={() => {
+                                            changeBookStatusMutation.mutate({ status: 'accepted' });
+                                        }}
+                                        disabled={changeBookStatusMutation.isPending}
+                                    >
+                                        {changeBookStatusMutation.isPending ? 'Updating...' : 'Accept'}
+                                    </Button>
+                                </div>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </>
+            );
+        },
+    }
+]
+
+export const borrowedBooksColumns: ColumnDef<AllBorrowedBooksTableInterface>[] = [
+    {
+        id: "id",
+        header: () => "Sr.",
+        cell: ({ row }) => <div>{row.index + 1}</div>,
+        enableSorting: false,
+        enableHiding: false,
+    },
+    {
+        accessorKey: "bookNumber",
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title="Book Number" />
+        ),
+        cell: ({ row }) => <div>{row?.original?.bookCopy?.book?.bookNumber}</div>,
+        enableSorting: false,
+        enableHiding: false,
+    },
+    {
+        accessorKey: "bookName",
+        header: () => "Book Name",
+        cell: ({ row }) => {
+            return (
+                <div className="flex space-x-2">
+                    <span className="max-w-[250px] truncate">
+                        {row?.original?.bookCopy?.book?.bookName}
+                    </span>
+                </div>
+            )
+        },
+    },
+    {
+        accessorKey: "studentName",
+        header: () => <span>Student Name</span>,
+        cell: ({ row }) => {
+            return (
+                <div className="w-24 truncate">
+                    <span>{row?.original?.user?.name}</span>
+                </div>
+            )
+        },
+    },
+    {
+        accessorKey: "studentId",
+        header: () => <span>Student Id</span>,
+        cell: ({ row }) => {
+            return (
+                <div className="w-24 truncate">
+                    <span>{row?.original?.user?.studentId}</span>
                 </div>
             )
         },
@@ -496,21 +750,25 @@ export const borrowedBooksColumns: ColumnDef<BorrowedBookInterface>[] = [
         accessorKey: "status",
         header: () => "Borrow Status",
         cell: ({ row }) => {
-            const status = row.getValue("status") == 'borrowed'
+            const colorAgainstStatuses = {
+                "borrowed": "text-green-700",
+                "returned": "text-pink-700",
+            }
+            const status = row?.original?.status;
             return (
                 <div className="flex space-x-2">
-                    <Badge variant="outline" className={status ? 'bg-[#ECFDF3] text-green-700' : `bg-pink-50 text-pink-700`}>{status ? "Borrowed" : "Overdue"}</Badge>
+                    <Badge variant="outline" className={`${colorAgainstStatuses[status]} bg-[#ECFDF3]`}>{status}</Badge>
                 </div>
             )
         },
     },
     {
-        accessorKey: "borrowedAt",
+        accessorKey: "borrowedOn",
         header: () => <span>Borrowed On</span>,
         cell: ({ row }) => {
             return (
                 <div>
-                    <span>{row.getValue("borrowedAt")}</span>
+                    <span>{format(new Date(row?.original?.borrowedOn), 'dd/MM/yyyy')}</span>
                 </div>
             )
         },
@@ -521,46 +779,121 @@ export const borrowedBooksColumns: ColumnDef<BorrowedBookInterface>[] = [
         cell: ({ row }) => {
             return (
                 <div>
-                    <span>{row.getValue("dueDate")}</span>
+                    <span>{format(new Date(row?.original?.dueDate), 'dd/MM/yyyy')}</span>
                 </div>
             )
         },
     },
     {
-        accessorKey: "actions`",
-        header: () => "Actions",
+        accessorKey: "returned",
+        header: () => <span>Returned</span>,
         cell: ({ row }) => {
-
-            const returnBookMutation = useMutation({
-                mutationKey: ['change borrow book status', row.original.id],
-                mutationFn: (bookId: string) => {
-                    return axios.post(`/api/books/${bookId}/return`)
-                },
-                onError: () => {
-                    toast("Something went wrong. Please try again.");
-                },
-                onSuccess: () => {
-                    // Add any success handling (e.g., toast notification)
-                }
-            })
-
             return (
-                <div className="flex items-center gap-3">
-                    <Select
-                        onValueChange={(value) => {
-                            returnBookMutation.mutate(value)
-                        }}
-                    >
-                        <SelectTrigger className="w-max border-black/20">
-                            <SelectValue placeholder="Borrowed" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="returned">Returned</SelectItem>
-                            <SelectItem value="not returned">Not Returned</SelectItem>
-                        </SelectContent>
-                    </Select>
+                <div>
+                    <span>{row?.original?.returnedOn ? format(new Date(row?.original?.returnedOn), 'dd/MM/yyyy') : "N/A"}</span>
                 </div>
             )
         },
     },
+    {
+        accessorKey: "actions",
+        header: () => "Actions",
+        cell: ({ row }) => {
+            // State to control the visibility of the alert dialog
+            const [isAlertOpen, setIsAlertOpen] = useState(false);
+
+            // The book data from the current row
+            const bookRequest = row.original;
+
+            const changeBookStatusMutation = useMutation({
+                mutationKey: ['change-borrow-book-status', bookRequest.id],
+                // The mutation function now accepts an object with the status
+                mutationFn: async (variables: { status: 'accepted' | 'rejected' }) => {
+                    const token = localStorage.getItem("adminToken");
+                    const { data } = await api.post(`/api/admin/borrow-requests/change-status/${bookRequest.id}`,
+                        { status: variables.status },
+                        {
+                            headers: {
+                                Authorization: `Bearer ${token}`
+                            },
+                            withCredentials: true,
+                        }
+                    );
+                    console.log("return response: ", data);
+                    return data;
+                },
+                onError: (error) => {
+                    console.error("Mutation Error:", error);
+                    toast.error("Something went wrong. Please try again.", {
+                        icon: <X stroke="red" />,
+                    });
+                },
+                onSuccess: (data: { status: string }) => {
+                    console.log("data: ", data);
+                    toast.success("Book status updated successfully!", {
+                        icon: <CheckCircle stroke="green" />,
+                    });
+
+                    setIsAlertOpen(false); // Close the dialog on success
+                },
+            });
+
+            return (
+                <>
+                    {/* Button to trigger the alert dialog */}
+                    {row?.original?.status == "borrowed" ?
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsAlertOpen(true)}
+                            disabled={changeBookStatusMutation?.isPending}
+                        >
+                            {changeBookStatusMutation?.isPending ? "Updating" : "Update Status"}
+                        </Button>
+                        : "N/A"
+                    }
+
+                    {/* Alert Dialog for confirmation */}
+                    <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Confirm Status Change</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    You are about to change the borrowing status for:
+                                    <span className="mt-2 font-medium text-black">
+                                        <span className="block">User: {bookRequest?.user?.name}</span>
+                                        <span className="block">Student ID: {bookRequest?.user?.studentId}</span>
+                                    </span>
+                                    <span className="block mt-3">Please select the new status below.</span>
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter className="w-full flex justify-between sm:justify-between">
+                                <AlertDialogCancel>Back</AlertDialogCancel>
+                                <div className="flex gap-2">
+                                    {/* Reject Button */}
+                                    <Button
+                                        variant="destructive"
+                                        onClick={() => {
+                                            changeBookStatusMutation.mutate({ status: 'rejected' });
+                                        }}
+                                        disabled={changeBookStatusMutation.isPending}
+                                    >
+                                        {changeBookStatusMutation.isPending ? 'Updating...' : 'Reject'}
+                                    </Button>
+                                    {/* Accept Button */}
+                                    <Button
+                                        onClick={() => {
+                                            changeBookStatusMutation.mutate({ status: 'accepted' });
+                                        }}
+                                        disabled={changeBookStatusMutation.isPending}
+                                    >
+                                        {changeBookStatusMutation.isPending ? 'Updating...' : 'Accept'}
+                                    </Button>
+                                </div>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </>
+            );
+        },
+    }
 ]
