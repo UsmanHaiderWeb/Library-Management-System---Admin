@@ -72,6 +72,7 @@ function AllBorrowRequests() {
 
     return (
         <div className="px-7 w-full pb-10">
+            <title>Borrow Requests - GICCL | Library</title>
             <DataTable
                 data={data?.requests || []}
                 columns={requestForBorrowingBooksColumns}

@@ -15,6 +15,7 @@ import { CheckCircle, X } from "lucide-react"
 import { api } from "@/lib/AxiosCalls"
 import { useLocation } from "react-router-dom"
 import { format } from "date-fns";
+import { AxiosError } from "axios"
 
 
 export const bookTableColumns: ColumnDef<BookInterface>[] = [
@@ -654,7 +655,7 @@ export const requestForBorrowingBooksColumns: ColumnDef<AllBorrowRequestsTableIn
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Confirm Status Change</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    You are about to change the borrowing status for:
+                                    You are about to change the borrow request status for:
                                     <span className="mt-2 font-medium text-black">
                                         <span className="block">User: {bookRequest?.user?.name}</span>
                                         <span className="block">Student ID: {bookRequest?.user?.studentId}</span>
@@ -751,8 +752,8 @@ export const borrowedBooksColumns: ColumnDef<AllBorrowedBooksTableInterface>[] =
         header: () => "Borrow Status",
         cell: ({ row }) => {
             const colorAgainstStatuses = {
-                "borrowed": "text-green-700",
-                "returned": "text-pink-700",
+                "returned": "text-green-700",
+                "borrowed": "text-blue-700",
             }
             const status = row?.original?.status;
             return (
@@ -801,16 +802,18 @@ export const borrowedBooksColumns: ColumnDef<AllBorrowedBooksTableInterface>[] =
         cell: ({ row }) => {
             // State to control the visibility of the alert dialog
             const [isAlertOpen, setIsAlertOpen] = useState(false);
+            const queryClient = useQueryClient();
+            const { state } = useLocation();
 
             // The book data from the current row
-            const bookRequest = row.original;
+            const borrowedBook = row.original;
 
             const changeBookStatusMutation = useMutation({
-                mutationKey: ['change-borrow-book-status', bookRequest.id],
+                mutationKey: ['change-borrowed-book-status', borrowedBook.id],
                 // The mutation function now accepts an object with the status
-                mutationFn: async (variables: { status: 'accepted' | 'rejected' }) => {
+                mutationFn: async (variables: { status: 'returned' }) => {
                     const token = localStorage.getItem("adminToken");
-                    const { data } = await api.post(`/api/admin/borrow-requests/change-status/${bookRequest.id}`,
+                    const { data } = await api.post(`/api/admin/borrowed-books/${borrowedBook?.id}/change-status`,
                         { status: variables.status },
                         {
                             headers: {
@@ -819,20 +822,47 @@ export const borrowedBooksColumns: ColumnDef<AllBorrowedBooksTableInterface>[] =
                             withCredentials: true,
                         }
                     );
-                    console.log("return response: ", data);
+
                     return data;
                 },
-                onError: (error) => {
-                    console.error("Mutation Error:", error);
-                    toast.error("Something went wrong. Please try again.", {
+                onError: (error: AxiosError<{message: string}>) => {
+                    console.error("Mutation Error:", error.response?.data?.message);
+                    toast.error(error.response?.data?.message || "Something went wrong. Please try again.", {
                         icon: <X stroke="red" />,
                     });
                 },
-                onSuccess: (data: { status: string }) => {
-                    console.log("data: ", data);
+                onSuccess: (data: { status: string, returnedOn: string }) => {
                     toast.success("Book status updated successfully!", {
                         icon: <CheckCircle stroke="green" />,
                     });
+
+                    // update the borrowed book status with your actual query key
+                    queryClient.setQueryData(
+                        ['all-borrowed-books', state?.pageNumber || 0, state?.searchQuery || 'nothing to query'],
+                        (oldData: { totalPages: number, borrowedBooks: AllBorrowedBooksTableInterface[] }) => {
+
+                            if (oldData?.borrowedBooks && oldData?.borrowedBooks.length) {
+                                const newData = oldData?.borrowedBooks.map((borrowedBook: AllBorrowedBooksTableInterface) => {
+                                    if (borrowedBook?.id == row?.original?.id) {
+                                        return {
+                                            ...borrowedBook,
+                                            returnedOn: data?.returnedOn,
+                                            status: data?.status,
+                                        }
+                                    } else return borrowedBook;
+                                })
+                                return {
+                                    totalPages: oldData?.totalPages,
+                                    borrowedBooks: newData
+                                };
+                            }
+                            return oldData;
+                        }
+                    );
+
+                    if (state?.searchQuery && state?.searchQuery != 'nothing to query') {
+                        queryClient.invalidateQueries({ queryKey: ['all-borrowed-books', 0, 'nothing to query'] }); 
+                    }
 
                     setIsAlertOpen(false); // Close the dialog on success
                 },
@@ -860,35 +890,23 @@ export const borrowedBooksColumns: ColumnDef<AllBorrowedBooksTableInterface>[] =
                                 <AlertDialogDescription>
                                     You are about to change the borrowing status for:
                                     <span className="mt-2 font-medium text-black">
-                                        <span className="block">User: {bookRequest?.user?.name}</span>
-                                        <span className="block">Student ID: {bookRequest?.user?.studentId}</span>
+                                        <span className="block">User: {borrowedBook?.user?.name}</span>
+                                        <span className="block">Student ID: {borrowedBook?.user?.studentId}</span>
                                     </span>
-                                    <span className="block mt-3">Please select the new status below.</span>
+                                    <span className="block mt-3">Please confirm that the user has returned the book:</span>
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
-                            <AlertDialogFooter className="w-full flex justify-between sm:justify-between">
+                            <AlertDialogFooter>
                                 <AlertDialogCancel>Back</AlertDialogCancel>
-                                <div className="flex gap-2">
-                                    {/* Reject Button */}
-                                    <Button
-                                        variant="destructive"
-                                        onClick={() => {
-                                            changeBookStatusMutation.mutate({ status: 'rejected' });
-                                        }}
-                                        disabled={changeBookStatusMutation.isPending}
-                                    >
-                                        {changeBookStatusMutation.isPending ? 'Updating...' : 'Reject'}
-                                    </Button>
-                                    {/* Accept Button */}
-                                    <Button
-                                        onClick={() => {
-                                            changeBookStatusMutation.mutate({ status: 'accepted' });
-                                        }}
-                                        disabled={changeBookStatusMutation.isPending}
-                                    >
-                                        {changeBookStatusMutation.isPending ? 'Updating...' : 'Accept'}
-                                    </Button>
-                                </div>
+                                {/* Returned Book Action Button */}
+                                <Button
+                                    onClick={() => {
+                                        changeBookStatusMutation.mutate({ status: 'returned' });
+                                    }}
+                                    disabled={changeBookStatusMutation.isPending}
+                                >
+                                    {changeBookStatusMutation.isPending ? 'Updating...' : 'Returned'}
+                                </Button>
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>

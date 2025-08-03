@@ -57,6 +57,7 @@ const Login = () => {
 
     return (
         <div className='h-screen max-h-[750px] items-center grid lg:grid-cols-2 grid-cols-1 bg-[#0A0A0F] text-white'>
+            <title>Login - GICCL | Library</title>
             <div className='w-full h-full flex items-center justify-center'>
                 <div className='formBg w-[94vw] max-w-lg sm:w-lg lg:max-w-[45vw] space-y-6 py-8 sm:py-10 px-7 sm:px-10 rounded-lg'>
                     <div>

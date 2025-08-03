@@ -52,6 +52,7 @@ function AllUsers() {
 
     return (
         <div className="px-7 w-full pb-10">
+            <title>List All Users - GICCL | Library</title>
             <DataTable
                 data={data?.users || []}
                 columns={userColumn}

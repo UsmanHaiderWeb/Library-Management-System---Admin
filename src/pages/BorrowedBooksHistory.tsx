@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { memo, useEffect, useRef, useState } from "react"
-import { bookTableColumns } from "./Table/columns"
+import { borrowedBooksColumns } from "./Table/columns"
 import { DataTable } from "./Table/data-table"
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/AxiosCalls";
-import { BookInterface } from "@/lib/types&interfaces";
+import { AllBorrowedBooksTableInterface } from "@/lib/types&interfaces";
+import { useLocation, useNavigate } from "react-router-dom";
 
-const fetchAllUsers = async ({ token, pageNumber, searchQuery }: { token: string, pageNumber: number, searchQuery: string }) => {
-    const { data } = await api.get(`/api/admin/getAllBooks?pageNumber=${pageNumber}&searchQuery=${searchQuery}`, {
+const fetchBorrowedBooksHistory = async ({ token, pageNumber, searchQuery }: { token: string, pageNumber: number, searchQuery: string }) => {
+    const { data } = await api.get(`/api/admin/borrowed-books/history?pageNumber=${pageNumber}&searchQuery=${searchQuery}`, {
         headers: {
             'Authorization': `Bearer ${token}`,
         },
@@ -17,16 +18,19 @@ const fetchAllUsers = async ({ token, pageNumber, searchQuery }: { token: string
     return data;
 }
 
-function AllUsers() {
+function BorrowedBooksHistory() {
     const [pageNumber, setPageNumber] = useState(0);
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [searchQueryForApi, setSearchQueryForApi] = useState<string>('');
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
     const token = localStorage.getItem('adminToken') || '';
+    const { state } = useLocation();
+    const navigate = useNavigate();
 
-    const { data, isPending, refetch } = useQuery<{ totalPages: number, books: BookInterface[] }>({
-        queryKey: ['books', pageNumber, searchQueryForApi || 'nothing to query'],
-        queryFn: () => fetchAllUsers({ token, pageNumber, searchQuery: searchQueryForApi }),
+
+    const { data, isPending, refetch } = useQuery<{ totalPages: number, borrowedBooks: AllBorrowedBooksTableInterface[] }>({
+        queryKey: ['all-borrowed-books-history', pageNumber, searchQueryForApi || 'nothing to query'],
+        queryFn: () => fetchBorrowedBooksHistory({ token, pageNumber, searchQuery: searchQueryForApi }),
         enabled: !!token,
         staleTime: 1000 * 60 * 5,
         refetchOnWindowFocus: false,
@@ -43,19 +47,35 @@ function AllUsers() {
         typingTimeoutRef.current = setTimeout(() => {
             console.log("Sending API call with:", searchQuery)
             setSearchQueryForApi(searchQuery);
-        }, 3000) // 3 second debounce
+            navigate("/borrowed-books", {
+                replace: true,
+                state: {
+                    ...state,
+                    searchQuery: searchQuery || 'nothing to query',
+                }
+            })
+        }, 2000) // 2 second debounce
 
         return () => {
             clearTimeout((typingTimeoutRef.current as any))
         }
     }, [searchQuery])
 
+    useEffect(() => {
+        navigate("/borrowed-books", {
+            replace: true,
+            state: {
+                ...state,
+                pageNumber,
+            }
+        })
+    }, [pageNumber])
+
     return (
         <div className="px-7 w-full pb-10">
-            <title>List All Books - GICCL | Library</title>
             <DataTable
-                data={data?.books || []}
-                columns={bookTableColumns}
+                data={data?.borrowedBooks || []}
+                columns={borrowedBooksColumns}
                 pageNumber={pageNumber}
                 setPageNumber={setPageNumber}
                 totalPages={data?.totalPages || 1}
@@ -67,4 +87,4 @@ function AllUsers() {
         </div>
     )
 }
-export default memo(AllUsers)
+export default memo(BorrowedBooksHistory)

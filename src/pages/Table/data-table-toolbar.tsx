@@ -2,14 +2,15 @@
 "use client"
 
 import { Table } from "@tanstack/react-table"
-import { X } from "lucide-react"
+import { RefreshCcw, X } from "lucide-react"
 import React from "react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
-import { isAvailableStatuses, isEmailVerifiedStatuses } from "./data"
+import { isEmailVerifiedStatuses } from "./data"
 import { DataTableFacetedFilter } from "./data-table-faceted-filter"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface DataTableToolbarProps<TData> {
     table: Table<TData>
@@ -17,6 +18,9 @@ interface DataTableToolbarProps<TData> {
     refetchData?: any;
     searchQuery?: string;
     setSearchQuery?: React.Dispatch<React.SetStateAction<string>>
+    refetching?: boolean
+    setRefetching?: React.Dispatch<React.SetStateAction<boolean>>
+    handleRefetchCall?: any
 }
 
 export function DataTableToolbar<TData>({
@@ -24,6 +28,9 @@ export function DataTableToolbar<TData>({
     placeHolder,
     searchQuery,
     setSearchQuery,
+    refetching,
+    setRefetching,
+    handleRefetchCall,
 }: DataTableToolbarProps<TData>) {
     const isFiltered = table.getState().columnFilters?.length > 0
 
@@ -63,6 +70,26 @@ export function DataTableToolbar<TData>({
                     </Button>
                 )}
             </div>
+            {(handleRefetchCall && setRefetching) &&
+                <div>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="secondary" size='sm' disabled={refetching}
+                                    onClick={async () => {
+                                        setRefetching(true);
+                                        await handleRefetchCall();
+                                        setRefetching(false);
+                                    }}
+                                >
+                                    <RefreshCcw size={15} className={refetching ? `animate-spin duration-300` : ''} />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Refresh</TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </div>
+            }
         </div>
     )
 }

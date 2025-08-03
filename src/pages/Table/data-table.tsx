@@ -61,6 +61,7 @@ export function DataTable<TData, TValue>({
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
     const [sorting, setSorting] = React.useState<SortingState>([])
+    const [refetching, setRefetching] = React.useState<boolean>(false);
 
     const table = useReactTable({
         data,
@@ -99,7 +100,16 @@ export function DataTable<TData, TValue>({
 
     return (
         <div className="w-full space-y-2">
-            <DataTableToolbar table={table} placeHolder={placeHolder || ''} refetchData={refetchData} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+            <DataTableToolbar
+            table={table}
+            placeHolder={placeHolder || ''}
+            refetchData={refetchData}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            refetching={refetching || loadingData}
+            setRefetching={setRefetching}
+            handleRefetchCall={refetchData}
+            />
             <ScrollArea className="w-full border rounded-md">
                 <div className="space-y-4 w-full min-w-[800px] pb-1">
                     <div>
@@ -122,7 +132,7 @@ export function DataTable<TData, TValue>({
                                     </TableRow>
                                 ))}
                             </TableHeader>
-                            {loadingData ?
+                            {(loadingData || refetching) ?
                                 <TableCaption className="h-40 mt-0">
                                     <div className="w-full h-full flex justify-center items-center">
                                         <BoxSpinLoader />

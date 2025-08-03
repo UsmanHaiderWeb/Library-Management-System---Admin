@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Users, BookOpen, ClipboardList, ListTodoIcon } from 'lucide-react';
+import { Home, Users, BookOpen, ClipboardList, ListTodoIcon, BadgePlus } from 'lucide-react';
 
 export default function Sidebar() {
     return (
@@ -8,7 +8,7 @@ export default function Sidebar() {
                 <div className="bg-blue rounded-full p-2">
                     <BookOpen className="text-white w-5 h-5" />
                 </div>
-                <span className="text-xl font-bold text-bluebg-blue">GICCL -Library</span>
+                <span className="text-xl font-bold text-bluebg-blue">GICCL - Library</span>
             </div>
             <div className="border-b border-dotted border-gray-300 mb-4" />
             <nav className="flex flex-col space-y-1">
@@ -20,6 +20,15 @@ export default function Sidebar() {
                 >
                     <Home className="w-4 h-4" />
                     Home
+                </NavLink>
+                <NavLink
+                    to="/books/add-new"
+                    className={({ isActive }) =>
+                        `text-[15px] flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue text-white' : 'text-gray-700 hover:bg-gray-100'}`
+                    }
+                >
+                    <BadgePlus className="w-4 h-4" />
+                    Add New Book
                 </NavLink>
                 {/* <NavLink
                     to="/analysis"
@@ -40,7 +49,7 @@ export default function Sidebar() {
                     All Users
                 </NavLink>
                 <NavLink
-                    to="/books"
+                    to="/books" end
                     className={({ isActive }) =>
                         `text-[15px] flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue text-white' : 'text-gray-700 hover:bg-gray-100'}`
                     }
