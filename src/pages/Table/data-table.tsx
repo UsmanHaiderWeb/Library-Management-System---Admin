@@ -43,6 +43,7 @@ interface DataTableProps<TData, TValue> {
     loadingData?: boolean;
     searchQuery?: string;
     setSearchQuery?: React.Dispatch<React.SetStateAction<string>>
+    onFilterChange?: (filters: any[]) => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -88,7 +89,11 @@ export function DataTable<TData, TValue>({
         enableRowSelection: true,
         onRowSelectionChange: setRowSelection,
         onSortingChange: setSorting,
-        onColumnFiltersChange: setColumnFilters,
+        onColumnFiltersChange: (updaterOrValue) => {
+            const nextFilters = typeof updaterOrValue === 'function' ? updaterOrValue(columnFilters) : updaterOrValue;
+            setColumnFilters(nextFilters);
+            onFilterChange?.(nextFilters);
+        },
         onColumnVisibilityChange: setColumnVisibility,
         getCoreRowModel: getCoreRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
@@ -101,14 +106,14 @@ export function DataTable<TData, TValue>({
     return (
         <div className="w-full space-y-2">
             <DataTableToolbar
-            table={table}
-            placeHolder={placeHolder || ''}
-            refetchData={refetchData}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            refetching={refetching || loadingData}
-            setRefetching={setRefetching}
-            handleRefetchCall={refetchData}
+                table={table}
+                placeHolder={placeHolder || ''}
+                refetchData={refetchData}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                refetching={refetching || loadingData}
+                setRefetching={setRefetching}
+                handleRefetchCall={refetchData}
             />
             <ScrollArea className="w-full border rounded-md">
                 <div className="space-y-4 w-full min-w-[800px] pb-1">
@@ -173,7 +178,7 @@ export function DataTable<TData, TValue>({
                 </div>
                 <ScrollBar orientation="horizontal" />
             </ScrollArea>
-            <div className="w-full" style={{pointerEvents: loadingData ? 'none' : 'all' }}>
+            <div className="w-full" style={{ pointerEvents: loadingData ? 'none' : 'all' }}>
                 <DataTablePagination table={table} />
             </div>
         </div>

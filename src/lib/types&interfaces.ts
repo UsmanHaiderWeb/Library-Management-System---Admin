@@ -8,7 +8,9 @@ export interface UserInfoType {
     phoneNumber: string;
     borrowedBooks?: string;
     createdAt?: string;
-    isEmailVerified?: boolean
+    isEmailVerified?: boolean;
+    role: 'STUDENT' | 'FACULTY' | 'STAFF' | 'ADMIN';
+    fineBalance: number;
 }
 
 export interface BorrowedBookInterface {
@@ -32,6 +34,8 @@ export interface BookInterface {
     shelfNumber: string;
     image: string;
     totalBooks: number;
+    isOnline: boolean;
+    onlineFileUrl?: string;
     _count: {
         BorrowedRequests: string;
         copies: number
@@ -75,4 +79,18 @@ export interface AllBorrowRequestsTableInterface {
     };
     requestedOn: string;
     status: "accepted" | "rejected" | "pending";
+}
+
+export interface PurchaseRequestInterface {
+    id: string;
+    bookName: string;
+    author: string;
+    reason: string;
+    status: "PENDING" | "APPROVED" | "DENIED";
+    requestedOn: string;
+    user: {
+        id: string;
+        name: string;
+        studentId: string;
+    };
 }

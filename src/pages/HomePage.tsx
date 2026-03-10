@@ -1,263 +1,192 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, ArrowUpRightFromSquare } from 'lucide-react';
+import { Plus, ArrowUpRightFromSquare, Loader2, TrendingUp } from 'lucide-react';
 import BookCover from '@/components/BookCover';
 import { Link, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/lib/AxiosCalls';
+import { createChart, ColorType } from 'lightweight-charts';
+import { useEffect, useRef, memo } from 'react';
 
-const mockBooks = [
-    {
-        id: '1',
-        title: 'Inside Evil: Inside Evil Series, Book 1',
-        author: 'Rachel Heng',
-        genre: 'Strategic, Fantasy',
-        coverColor: '#1a1a1a',
-        coverUrl: 'https://covers.openlibrary.org/b/id/10523338-L.jpg',
-        isLoanedBook: true,
-    },
-    {
-        id: '2',
-        title: 'Jayne Castle - People in Glass Houses',
-        author: 'Jayne Castle',
-        genre: 'Strategic, Fantasy',
-        coverColor: '#e11d48',
-        coverUrl: 'https://covers.openlibrary.org/b/id/10523339-L.jpg',
-        isLoanedBook: true,
-    },
-    {
-        id: '3',
-        title: 'The Great Reclamation: A Novel',
-        author: 'Rachel Heng',
-        genre: 'Strategic, Fantasy',
-        coverColor: '#2563eb',
-        coverUrl: 'https://covers.openlibrary.org/b/id/10523340-L.jpg',
-        isLoanedBook: true,
-    },
-];
+const BorrowingChart = () => {
+    const chartContainerRef = useRef<HTMLDivElement>(null);
 
-const mockUsers = [
-    { name: 'Marc Atenson', email: 'marcinne@gmail.com', avatar: 'https://randomuser.me/api/portraits/men/32.jpg' },
-    { name: 'Susan Drake', email: 'contact@susandrake.com', initials: 'SD', color: 'bg-blue-200' },
-    { name: 'Ronald Richards', email: 'ronaldrichard@mail.com', initials: 'RR', color: 'bg-yellow-200' },
-    { name: 'Jane Cooper', email: 'janecooper@protonmail.com', avatar: 'https://randomuser.me/api/portraits/women/44.jpg' },
-    { name: 'Ian Warren', email: 'iand.warren@mail.co', initials: 'IW', color: 'bg-green-200' },
-    { name: 'Darrell Steward', email: 'darrellsteward@gmail.com', avatar: 'https://randomuser.me/api/portraits/men/45.jpg' },
-];
+    useEffect(() => {
+        if (!chartContainerRef.current) return;
+
+        const chart = createChart(chartContainerRef.current, {
+            layout: {
+                background: { type: ColorType.Solid, color: 'transparent' },
+                textColor: '#64748b',
+            },
+            width: chartContainerRef.current.clientWidth,
+            height: 200,
+            grid: {
+                vertLines: { visible: false },
+                horzLines: { color: '#f1f5f9' },
+            },
+            timeScale: {
+                borderVisible: false,
+            },
+            rightPriceScale: {
+                borderVisible: false,
+            },
+        });
+
+        const lineSeries = chart.addLineSeries({
+            color: '#2563eb',
+            lineWidth: 2,
+        });
+
+        // Mock data for trends
+        const data = [
+            { time: '2026-03-01', value: 12 },
+            { time: '2026-03-02', value: 15 },
+            { time: '2026-03-03', value: 14 },
+            { time: '2026-03-04', value: 18 },
+            { time: '2026-03-05', value: 25 },
+            { time: '2026-03-06', value: 22 },
+            { time: '2026-03-07', value: 30 },
+            { time: '2026-03-08', value: 28 },
+            { time: '2026-03-09', value: 35 },
+            { time: '2026-03-10', value: 42 },
+        ];
+
+        lineSeries.setData(data);
+
+        const handleResize = () => {
+            if (chartContainerRef.current) {
+                chart.applyOptions({ width: chartContainerRef.current.clientWidth });
+            }
+        };
+
+        window.addEventListener('resize', handleResize);
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            chart.remove();
+        };
+    }, []);
+
+    return <div ref={chartContainerRef} className="w-full" />;
+};
 
 const HomePage = () => {
     const navigate = useNavigate();
+    const token = localStorage.getItem('adminToken') || '';
+
+    const { data: stats, isLoading } = useQuery({
+        queryKey: ['dashboard-stats'],
+        queryFn: async () => {
+            const { data } = await api.get('/api/admin/dashboard-stats', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            return data.stats;
+        },
+        enabled: !!token,
+    });
+
+    const { data: recentBooksData } = useQuery({
+        queryKey: ['all-books', 0, ''],
+        queryFn: async () => {
+            const { data } = await api.get(`/api/books/getAllBooks?pageNumber=0&searchQuery=`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            return data.books;
+        },
+        enabled: !!token
+    });
 
     return (
         <div className="p-6">
+            <title>Admin Dashboard - GICCL | Library</title>
             {/* Top summary cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <div>
-                            <CardDescription className="flex items-center gap-2">
-                                Borrowed Books
+                            <CardDescription className="flex items-center gap-2 text-blue-600 font-medium">
+                                Active Borrowed Books
                             </CardDescription>
-                            <CardTitle className="text-3xl mt-2">145</CardTitle>
+                            <CardTitle className="text-3xl mt-1 font-bold">
+                                {isLoading ? <Loader2 className="animate-spin w-6 h-6" /> : stats?.activeLoans || 0}
+                            </CardTitle>
                         </div>
-                        <div>
-                            <Button size='sm' variant='greenOutline'>View All</Button>
-                        </div>
-                    </CardHeader>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <div>
-                            <CardDescription className="flex items-center gap-2">
-                                Total Users
-                            </CardDescription>
-                            <CardTitle className="text-3xl mt-2">317</CardTitle>
-                        </div>
-                        <Link to="/users">
-                            <Button size='sm' variant='greenOutline'>View All</Button>
+                        <Link to="/borrowed-books">
+                            <Button size='sm' variant='outline' className="text-xs h-8 px-3">View All</Button>
                         </Link>
                     </CardHeader>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <div>
-                            <CardDescription className="flex items-center gap-2">
+                            <CardDescription className="flex items-center gap-2 text-green-600 font-medium">
+                                Total Users
+                            </CardDescription>
+                            <CardTitle className="text-3xl mt-1 font-bold">
+                                {isLoading ? <Loader2 className="animate-spin w-6 h-6" /> : stats?.totalStudents || 0}
+                            </CardTitle>
+                        </div>
+                        <Link to="/users">
+                            <Button size='sm' variant='outline' className="text-xs h-8 px-3 text-green-600">View All</Button>
+                        </Link>
+                    </CardHeader>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <div>
+                            <CardDescription className="flex items-center gap-2 text-purple-600 font-medium">
                                 Total Books
                             </CardDescription>
-                            <CardTitle className="text-3xl mt-2">163</CardTitle>
+                            <CardTitle className="text-3xl mt-1 font-bold">
+                                {isLoading ? <Loader2 className="animate-spin w-6 h-6" /> : stats?.totalBooks || 0}
+                            </CardTitle>
                         </div>
-                        <div>
-                            <Button size='sm' variant='greenOutline'>View All</Button>
-                        </div>
+                        <Link to="/books">
+                            <Button size='sm' variant='outline' className="text-xs h-8 px-3 text-purple-600">View All</Button>
+                        </Link>
                     </CardHeader>
                 </Card>
             </div>
 
             {/* Main content grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Left column: Borrow Requests & Account Requests */}
+                {/* Left column: Trends & Requests */}
                 <div className="flex flex-col gap-6">
-                    {/* Borrow Requests */}
+                    {/* Borrowing Trends Chart */}
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                            <CardTitle>Borrow Requests</CardTitle>
-                            <Button variant="blueOutline" size='sm'>View all</Button>
+                        <CardHeader>
+                            <CardTitle className="text-lg flex items-center gap-2">
+                                <TrendingUp className="w-5 h-5 text-blue-500" />
+                                Borrowing Trends
+                            </CardTitle>
+                            <CardDescription>Daily book borrowing activity for the last 10 days.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            {mockBooks?.length !== 0 ? (
-                                <div className="flex flex-col items-center justify-center pb-6">
-                                    {/* Placeholder for illustration */}
-                                    <div className="mb-6">
-                                        <svg width="160" height="114" viewBox="0 0 160 114" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <g filter="url(#filter0_dd_98001_27273)">
-                                                <rect x="12" width="66" height="90" rx="8" fill="white" />
-                                                <rect x="12.25" y="0.25" width="65.5" height="89.5" rx="7.75" stroke="#F8FBFF" stroke-width="0.5" />
-                                            </g>
-                                            <rect x="18.5" y="6.5" width="53" height="53" rx="5.5" fill="#EAF2FF" stroke="#F8FBFF" />
-                                            <rect x="18" y="66" width="54" height="6" rx="3" fill="#E2ECFF" />
-                                            <rect x="26" y="76.5" width="38" height="5" rx="2.5" fill="#EAF2FF" stroke="#F8FBFF" />
-                                            <g filter="url(#filter1_dd_98001_27273)">
-                                                <rect x="82" width="66" height="90" rx="8" fill="white" />
-                                                <rect x="82.25" y="0.25" width="65.5" height="89.5" rx="7.75" stroke="#F8FBFF" stroke-width="0.5" />
-                                            </g>
-                                            <rect x="88.5" y="6.5" width="53" height="53" rx="5.5" fill="#EAF2FF" stroke="#F8FBFF" />
-                                            <rect x="88" y="66" width="54" height="6" rx="3" fill="#E2ECFF" />
-                                            <rect x="96" y="76.5" width="38" height="5" rx="2.5" fill="#EAF2FF" stroke="#F8FBFF" />
-                                            <defs>
-                                                <filter id="filter0_dd_98001_27273" x="0" y="0" width="90" height="114" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-                                                    <feFlood flood-opacity="0" result="BackgroundImageFix" />
-                                                    <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
-                                                    <feMorphology radius="2" operator="erode" in="SourceAlpha" result="effect1_dropShadow_98001_27273" />
-                                                    <feOffset dy="4" />
-                                                    <feGaussianBlur stdDeviation="3" />
-                                                    <feColorMatrix type="matrix" values="0 0 0 0 0.0941176 0 0 0 0 0.137255 0 0 0 0 0.133333 0 0 0 0.03 0" />
-                                                    <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_98001_27273" />
-                                                    <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
-                                                    <feMorphology radius="4" operator="erode" in="SourceAlpha" result="effect2_dropShadow_98001_27273" />
-                                                    <feOffset dy="12" />
-                                                    <feGaussianBlur stdDeviation="8" />
-                                                    <feColorMatrix type="matrix" values="0 0 0 0 0.0941176 0 0 0 0 0.137255 0 0 0 0 0.133333 0 0 0 0.08 0" />
-                                                    <feBlend mode="normal" in2="effect1_dropShadow_98001_27273" result="effect2_dropShadow_98001_27273" />
-                                                    <feBlend mode="normal" in="SourceGraphic" in2="effect2_dropShadow_98001_27273" result="shape" />
-                                                </filter>
-                                                <filter id="filter1_dd_98001_27273" x="70" y="0" width="90" height="114" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-                                                    <feFlood flood-opacity="0" result="BackgroundImageFix" />
-                                                    <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
-                                                    <feMorphology radius="2" operator="erode" in="SourceAlpha" result="effect1_dropShadow_98001_27273" />
-                                                    <feOffset dy="4" />
-                                                    <feGaussianBlur stdDeviation="3" />
-                                                    <feColorMatrix type="matrix" values="0 0 0 0 0.0941176 0 0 0 0 0.137255 0 0 0 0 0.133333 0 0 0 0.03 0" />
-                                                    <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_98001_27273" />
-                                                    <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
-                                                    <feMorphology radius="4" operator="erode" in="SourceAlpha" result="effect2_dropShadow_98001_27273" />
-                                                    <feOffset dy="12" />
-                                                    <feGaussianBlur stdDeviation="8" />
-                                                    <feColorMatrix type="matrix" values="0 0 0 0 0.0941176 0 0 0 0 0.137255 0 0 0 0 0.133333 0 0 0 0.08 0" />
-                                                    <feBlend mode="normal" in2="effect1_dropShadow_98001_27273" result="effect2_dropShadow_98001_27273" />
-                                                    <feBlend mode="normal" in="SourceGraphic" in2="effect2_dropShadow_98001_27273" result="shape" />
-                                                </filter>
-                                            </defs>
-                                        </svg>
-                                    </div>
-                                    <div className="text-lg font-semibold text-gray-700 mb-2 text-center">No Pending Book Requests</div>
-                                    <div className="text-gray-400 text-center max-w-xs text-sm">There are no borrow book requests awaiting your r+eview at this time.</div>
-                                </div>
-                            ) : (
-                                <ul className="space-y-4">
-                                    {mockBooks.map((book) => (
-                                        <li key={book.id} className="flex items-center gap-3 bg-bg rounded-lg p-2 shadow-sm">
-                                            <BookCover coverColor={book.coverColor} coverImage={book?.coverUrl} variant='small' />
-                                            <div className="flex-1">
-                                                <div className="font-semibold text-gray-800 text-sm">{book.title}</div>
-                                                <div className="text-xs text-gray-500">By {book.author} • {book.genre}</div>
-                                                <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
-                                                    <span>Darrell Stewards</span>
-                                                    <span>•</span>
-                                                    <span>12/01/24</span>
-                                                </div>
-                                            </div>
-                                            <Link to={book?.id}>
-                                                <Button variant="ghost" size="icon"><ArrowUpRightFromSquare /></Button>
-                                            </Link>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
+                            <BorrowingChart />
                         </CardContent>
                     </Card>
 
-                    {/* Account Requests */}
+                    {/* Borrow Requests Summary */}
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
-                            <CardTitle>Account Requests</CardTitle>
-                            <Button variant="blueOutline" size='sm'>View all</Button>
+                            <CardTitle className="text-lg">Pending Borrow Requests</CardTitle>
+                            <Link to="/borrow-requests">
+                                <Button variant="outline" size='sm' className="text-xs">Manage</Button>
+                            </Link>
                         </CardHeader>
                         <CardContent>
-                            {mockUsers?.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center pb-2">
-                                    {/* Placeholder for illustration */}
-                                    <div className="mb-6">
-                                        <svg width="217" height="144" viewBox="0 0 217 144" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <circle cx="109" cy="72" r="71.5" fill="#EAF2FF" stroke="#F8FBFF" />
-                                            <g filter="url(#filter0_d_98001_27457)">
-                                                <rect x="31" y="25" width="155" height="94" rx="6" fill="white" />
-                                                <rect x="31.25" y="25.25" width="154.5" height="93.5" rx="5.75" stroke="#F8FBFF" stroke-width="0.5" />
-                                            </g>
-                                            <g filter="url(#filter1_dd_98001_27457)">
-                                                <rect x="12" y="39" width="193" height="66" rx="8" fill="white" />
-                                                <rect x="12.25" y="39.25" width="192.5" height="65.5" rx="7.75" stroke="#F8FBFF" stroke-width="0.5" />
-                                            </g>
-                                            <rect x="18.5" y="45.5" width="53" height="53" rx="5.5" fill="#EAF2FF" stroke="#F8FBFF" />
-                                            <rect x="82" y="51" width="101" height="8" rx="4" fill="#E2ECFF" />
-                                            <rect x="82.5" y="71.5" width="113" height="7" rx="3.5" fill="#EAF2FF" stroke="#F8FBFF" />
-                                            <rect x="82.5" y="86.5" width="86" height="7" rx="3.5" fill="#EAF2FF" stroke="#F8FBFF" />
-                                            <defs>
-                                                <filter id="filter0_d_98001_27457" x="29" y="24" width="159" height="98" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-                                                    <feFlood flood-opacity="0" result="BackgroundImageFix" />
-                                                    <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
-                                                    <feOffset dy="1" />
-                                                    <feGaussianBlur stdDeviation="1" />
-                                                    <feColorMatrix type="matrix" values="0 0 0 0 0.0941176 0 0 0 0 0.137255 0 0 0 0 0.133333 0 0 0 0.05 0" />
-                                                    <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_98001_27457" />
-                                                    <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_98001_27457" result="shape" />
-                                                </filter>
-                                                <filter id="filter1_dd_98001_27457" x="0" y="39" width="217" height="90" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-                                                    <feFlood flood-opacity="0" result="BackgroundImageFix" />
-                                                    <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
-                                                    <feMorphology radius="2" operator="erode" in="SourceAlpha" result="effect1_dropShadow_98001_27457" />
-                                                    <feOffset dy="4" />
-                                                    <feGaussianBlur stdDeviation="3" />
-                                                    <feColorMatrix type="matrix" values="0 0 0 0 0.0941176 0 0 0 0 0.137255 0 0 0 0 0.133333 0 0 0 0.03 0" />
-                                                    <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_98001_27457" />
-                                                    <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
-                                                    <feMorphology radius="4" operator="erode" in="SourceAlpha" result="effect2_dropShadow_98001_27457" />
-                                                    <feOffset dy="12" />
-                                                    <feGaussianBlur stdDeviation="8" />
-                                                    <feColorMatrix type="matrix" values="0 0 0 0 0.0941176 0 0 0 0 0.137255 0 0 0 0 0.133333 0 0 0 0.08 0" />
-                                                    <feBlend mode="normal" in2="effect1_dropShadow_98001_27457" result="effect2_dropShadow_98001_27457" />
-                                                    <feBlend mode="normal" in="SourceGraphic" in2="effect2_dropShadow_98001_27457" result="shape" />
-                                                </filter>
-                                            </defs>
-                                        </svg>
-                                    </div>
-                                    <div className="text-lg font-semibold text-gray-700 mb-2 text-center">No Pending Account Requests</div>
-                                    <div className="text-gray-400 text-center max-w-xs text-sm">There are currently no account requests awaiting approval.</div>
+                            <div className="flex items-center justify-between py-2">
+                                <div className="flex flex-col">
+                                    <span className="text-3xl font-bold text-blue-600">
+                                        {isLoading ? <Loader2 className="animate-spin" /> : stats?.pendingRequests || 0}
+                                    </span>
+                                    <span className="text-sm text-gray-500 font-medium">Requests awaiting action</span>
                                 </div>
-                            ) : (
-                                <div className="flex flex-wrap justify-between gap-4 overflow-hidden">
-                                    {mockUsers.map((user, i) => (
-                                        <div key={i} className="w-[30%] flex-1 flex items-center flex-col gap-3">
-                                            {user.avatar ? (
-                                                <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full object-cover" />
-                                            ) : (
-                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-gray-700 ${user.color}`}>{user.initials}</div>
-                                            )}
-                                            <div className='text-center'>
-                                                <div className="font-medium text-gray-800 text-sm leading-tight w-[90%] truncate">{user.name}</div>
-                                                <div className="text-xs text-gray-400 w-[90%] truncate">{user.email}</div>
-                                            </div>
-                                        </div>
-                                    ))}
+                                <div className="bg-blue-50 p-3 rounded-full">
+                                    <ArrowUpRightFromSquare className="w-6 h-6 text-blue-400" />
                                 </div>
-                            )}
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
@@ -266,37 +195,62 @@ const HomePage = () => {
                 <div className="flex flex-col gap-6">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
-                            <CardTitle>Recently Added Books</CardTitle>
-                            <Button variant="blueOutline" size='sm'>View all</Button>
+                            <CardTitle className="text-lg">Recently Added Books</CardTitle>
+                            <Link to="/books">
+                                <Button variant="outline" size='sm' className="text-xs">View all</Button>
+                            </Link>
                         </CardHeader>
                         <CardContent>
                             <div className="mb-4">
                                 <Button
                                     variant="outline"
-                                    className="w-full flex items-center gap-2 justify-center"
+                                    className="w-full flex items-center gap-2 justify-center border-dashed text-gray-500 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50"
                                     onClick={() => navigate('/books/add-new')}
                                 >
                                     <Plus className="w-5 h-5" /> Add New Book
                                 </Button>
                             </div>
-                            <ul className="space-y-3">
-                                {mockBooks.concat(mockBooks).map((book) => (
-                                    <li key={book.id} className="flex items-center gap-3 bg-bg rounded-lg p-2 shadow-sm">
-                                        <BookCover coverColor={book.coverColor} coverImage={book?.coverUrl} variant='small' />
-                                        <div className="flex-1">
-                                            <div className="font-semibold text-gray-800 text-sm">{book.title}</div>
-                                            <div className="text-xs text-gray-500">By {book.author} • {book.genre}</div>
-                                            <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
-                                                <span>Darrell Stewards</span>
+                            <div className="space-y-3">
+                                {recentBooksData?.slice(0, 4).map((book: any) => (
+                                    <div key={book.id} className="flex items-center gap-3 bg-gray-50/50 hover:bg-white rounded-xl p-3 border border-transparent hover:border-gray-200 transition-all shadow-sm">
+                                        <div className="shrink-0">
+                                            <BookCover coverColor="#f3f4f6" coverImage={book?.image} variant='extraSmall' />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="font-bold text-gray-800 text-sm truncate">{book.bookName}</div>
+                                            <div className="text-xs text-gray-500 truncate">By {book.author}</div>
+                                            <div className="flex items-center gap-2 mt-1 text-[10px] text-gray-400 uppercase tracking-wider font-semibold">
+                                                <span>ID: {book.bookNumber}</span>
                                                 <span>•</span>
-                                                <span>12/01/24</span>
+                                                <span className="text-blue-500">{book.genre}</span>
                                             </div>
                                         </div>
-                                        <Link to={book?.id}>
-                                            <Button variant="ghost" size="icon"><ArrowUpRightFromSquare /></Button>
+                                        <Link to={`/books/edit/${book.id}`}>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-blue-600 hover:bg-blue-50"><ArrowUpRightFromSquare size={16} /></Button>
                                         </Link>
-                                    </li>))}
-                            </ul>
+                                    </div>
+                                ))}
+                                {recentBooksData?.length === 0 && (
+                                    <div className="text-center py-6 text-gray-400 text-sm italic">No books found.</div>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Quick Links / Account Requests */}
+                    <Card className="bg-gray-900 border-gray-800">
+                        <CardHeader>
+                            <CardTitle className="text-white text-lg">Quick Actions</CardTitle>
+                        </CardHeader>
+                        <CardContent className="grid grid-cols-2 gap-3">
+                            <Link to="/account-requests" className="flex flex-col items-center justify-center p-4 bg-gray-800 rounded-xl hover:bg-gray-700 transition-colors gap-2 text-center text-xs text-gray-300 font-medium">
+                                <div className="bg-blue-500/20 p-2 rounded-lg"><Users className="w-5 h-5 text-blue-400" /></div>
+                                Account Requests
+                            </Link>
+                            <Link to="/purchase-requests" className="flex flex-col items-center justify-center p-4 bg-gray-800 rounded-xl hover:bg-gray-700 transition-colors gap-2 text-center text-xs text-gray-300 font-medium">
+                                <div className="bg-purple-500/20 p-2 rounded-lg"><ShoppingCart className="w-5 h-5 text-purple-400" /></div>
+                                Purchase Requests
+                            </Link>
                         </CardContent>
                     </Card>
                 </div>
@@ -305,4 +259,7 @@ const HomePage = () => {
     );
 };
 
-export default HomePage; 
+// Explicitly importing ShoppingCart since it's used in the JSX
+import { ShoppingCart, Users } from 'lucide-react';
+
+export default memo(HomePage);

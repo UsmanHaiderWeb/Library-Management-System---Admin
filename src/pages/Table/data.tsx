@@ -106,3 +106,22 @@ export const priorities = [
         icon: ArrowUp,
     },
 ]
+
+export const userRoles = [
+    {
+        value: "STUDENT",
+        label: "Student",
+    },
+    {
+        value: "FACULTY",
+        label: "Faculty",
+    },
+    {
+        value: "STAFF",
+        label: "Staff",
+    },
+    {
+        value: "ADMIN",
+        label: "Admin",
+    },
+]

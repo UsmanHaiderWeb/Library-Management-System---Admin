@@ -15,6 +15,8 @@ const AllBooks = lazy(() => import('./pages/AllBooks.tsx'));
 const AllUsers = lazy(() => import('./pages/AllUsers.tsx'));
 const AllAccountRequests = lazy(() => import('./pages/AllAccountRequests.tsx'));
 const AllBorrowRequests = lazy(() => import('./pages/AllBorrowRequests.tsx'));
+const AllPurchaseRequests = lazy(() => import('./pages/AllPurchaseRequests.tsx'));
+const BulkImport = lazy(() => import('./pages/BulkImport.tsx'));
 const BorrowedBooks = lazy(() => import('./pages/AllBorrowedBooks.tsx'));
 const SingleBookDetails = lazy(() => import('./pages/SingleBookDetails.tsx'));
 const SingleUserDetails = lazy(() => import('./pages/SingleUserDetails.tsx'));
@@ -52,6 +54,14 @@ const router = createBrowserRouter([
             {
                 path: '/borrow-requests',
                 element: <AllBorrowRequests />,
+            },
+            {
+                path: '/purchase-requests',
+                element: <AllPurchaseRequests />,
+            },
+            {
+                path: '/bulk-import',
+                element: <BulkImport />,
             },
             {
                 path: '/books/add-new',

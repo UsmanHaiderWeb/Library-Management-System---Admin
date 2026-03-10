@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Users, BookOpen, ClipboardList, ListTodoIcon, BadgePlus } from 'lucide-react';
+import { Home, Users, BookOpen, ClipboardList, ListTodoIcon, BadgePlus, ShoppingCart, FileUp } from 'lucide-react';
 
 export default function Sidebar() {
     return (
@@ -84,6 +84,24 @@ export default function Sidebar() {
                     <UserPlus className="w-4 h-4" />
                     Account Requests
                 </NavLink> */}
+                <NavLink
+                    to="/purchase-requests"
+                    className={({ isActive }) =>
+                        `text-[15px] flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue text-white' : 'text-gray-700 hover:bg-gray-100'}`
+                    }
+                >
+                    <ShoppingCart className="w-4 h-4" />
+                    Purchase Requests
+                </NavLink>
+                <NavLink
+                    to="/bulk-import"
+                    className={({ isActive }) =>
+                        `text-[15px] flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue text-white' : 'text-gray-700 hover:bg-gray-100'}`
+                    }
+                >
+                    <FileUp className="w-4 h-4" />
+                    Bulk Import
+                </NavLink>
             </nav>
         </aside>
     );

@@ -59,6 +59,14 @@ export function DataTableToolbar<TData>({
                             options={isEmailVerifiedStatuses}
                         />
                     )}
+                {table?.getAllLeafColumns()
+                    .findIndex(col => col?.id === "role") > -1 && (
+                        <DataTableFacetedFilter
+                            column={table.getColumn("role")}
+                            title="Role"
+                            options={userRoles}
+                        />
+                    )}
                 {isFiltered && (
                     <Button
                         variant="ghost"

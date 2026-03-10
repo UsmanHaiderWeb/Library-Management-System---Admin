@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { memo, useEffect, useRef, useState } from "react"
-import { userColumn } from "./Table/columns"
+import { purchaseRequestColumns } from "./Table/columns"
 import { DataTable } from "./Table/data-table"
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/AxiosCalls";
-import { UserInfoType } from "@/lib/types&interfaces";
+import { PurchaseRequestInterface } from "@/lib/types&interfaces";
 
-const fetchAllUsers = async ({ token, pageNumber, searchQuery, role }: { token: string, pageNumber: number, searchQuery: string, role?: string }) => {
-    const { data } = await api.get(`/api/admin/getAllUsers?page=${pageNumber}&search=${searchQuery}${role ? `&role=${role}` : ''}`, {
+const fetchAllPurchaseRequests = async ({ token, pageNumber, searchQuery }: { token: string, pageNumber: number, searchQuery: string }) => {
+    const { data } = await api.get(`/api/admin/purchase-requests?page=${pageNumber}&search=${searchQuery}`, {
         headers: {
             'Authorization': `Bearer ${token}`,
         },
@@ -17,22 +17,19 @@ const fetchAllUsers = async ({ token, pageNumber, searchQuery, role }: { token: 
     return data;
 }
 
-function AllUsers() {
+function AllPurchaseRequests() {
     const [pageNumber, setPageNumber] = useState(0);
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [searchQueryForApi, setSearchQueryForApi] = useState<string>('');
-    const [role, setRole] = useState<string>('');
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
     const token = localStorage.getItem('adminToken') || '';
 
-    const { data, isPending, refetch } = useQuery<{ totalPages: number, users: UserInfoType[] }>({
-        queryKey: ['users', pageNumber, searchQueryForApi, role],
-        queryFn: () => fetchAllUsers({ token, pageNumber, searchQuery: searchQueryForApi, role }),
+    const { data, isPending, refetch } = useQuery<{ totalPages: number, requests: PurchaseRequestInterface[] }>({
+        queryKey: ['purchase-requests', pageNumber, searchQueryForApi],
+        queryFn: () => fetchAllPurchaseRequests({ token, pageNumber, searchQuery: searchQueryForApi }),
         enabled: !!token,
         staleTime: 1000 * 60 * 5,
         refetchOnWindowFocus: false,
-        refetchOnMount: true,
-        refetchOnReconnect: false,
     });
 
     useEffect(() => {
@@ -42,9 +39,8 @@ function AllUsers() {
         }
 
         typingTimeoutRef.current = setTimeout(() => {
-            console.log("Sending API call with:", searchQuery)
             setSearchQueryForApi(searchQuery);
-        }, 1000) // 1 second debounce is enough
+        }, 1000)
 
         return () => {
             if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
@@ -53,10 +49,13 @@ function AllUsers() {
 
     return (
         <div className="px-7 w-full pb-10">
-            <title>List All Users - GICCL | Library</title>
+            <title>Purchase Requests - GICCL | Library</title>
+            <div className="mb-6 flex justify-between items-center">
+                <h1 className="text-2xl font-bold text-gray-800">Book Purchase Requests</h1>
+            </div>
             <DataTable
-                data={data?.users || []}
-                columns={userColumn}
+                data={data?.requests || []}
+                columns={purchaseRequestColumns}
                 pageNumber={pageNumber}
                 setPageNumber={setPageNumber}
                 totalPages={data?.totalPages || 1}
@@ -64,13 +63,10 @@ function AllUsers() {
                 loadingData={isPending || (searchQuery != searchQueryForApi)}
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
-                onFilterChange={(filters) => {
-                    const roleFilter = filters.find(f => f.id === 'role');
-                    setRole(roleFilter?.value?.[0] || '');
-                    setPageNumber(0);
-                }}
+                placeHolder="Search by book name or author..."
             />
         </div>
     )
 }
-export default memo(AllUsers)
+
+export default memo(AllPurchaseRequests)
