@@ -9,6 +9,7 @@ import IsAuthenticated from './components/IsAuthenticated.tsx'
 const App = lazy(() => import('./App.tsx'));
 const HomePage = lazy(() => import('./pages/HomePage.tsx'));
 const AddNewBookForm = lazy(() => import('./pages/AddNewBookForm.tsx'));
+const EditBookForm = lazy(() => import('./pages/EditBookForm.tsx'));
 const Login = lazy(() => import('./pages/Auth/Login.tsx'));
 const AllBooks = lazy(() => import('./pages/AllBooks.tsx'));
 const AllUsers = lazy(() => import('./pages/AllUsers.tsx'));
@@ -55,6 +56,10 @@ const router = createBrowserRouter([
             {
                 path: '/books/add-new',
                 element: <AddNewBookForm />,
+            },
+            {
+                path: '/books/edit/:bookId',
+                element: <EditBookForm />,
             },
             {
                 path: '/books/:id',

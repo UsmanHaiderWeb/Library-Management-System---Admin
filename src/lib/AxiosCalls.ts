@@ -5,27 +5,27 @@ export const api = axios.create({
 })
 
 export const denyStudentAccount = async (studentId: string, token: string) => {
-  const response = await api.post(
-    `/students/${studentId}/deny`,
-    {},
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-  return response.data;
+    const response = await api.post(
+        `/students/${studentId}/deny`,
+        {},
+        {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        }
+    );
+    return response.data;
 };
 
 export const approveStudentAccount = async (studentId: string, token: string) => {
-  const response = await api.post(
-    `/students/${studentId}/approve`,
-    {},
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-  return response.data;
+    const response = await api.post(
+        `/students/${studentId}/approve`,
+        {},
+        {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        }
+    );
+    return response.data;
 };
