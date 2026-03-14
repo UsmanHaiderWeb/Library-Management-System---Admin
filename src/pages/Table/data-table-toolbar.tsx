@@ -12,6 +12,14 @@ import { isEmailVerifiedStatuses } from "./data"
 import { DataTableFacetedFilter } from "./data-table-faceted-filter"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
+const userRoles = [
+    { value: "STUDENT", label: "Student" },
+    { value: "FACULTY", label: "Faculty" },
+    { value: "STAFF", label: "Staff" },
+    { value: "ADMIN", label: "Admin" },
+];
+
+
 interface DataTableToolbarProps<TData> {
     table: Table<TData>
     placeHolder?: string

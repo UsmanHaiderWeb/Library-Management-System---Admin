@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/rules-of-hooks */
 import { ColumnDef } from "@tanstack/react-table"
@@ -169,7 +170,7 @@ export const bookTableColumns: ColumnDef<BookInterface>[] = [
     },
 ];
 
-const BookActions = ({ row }: { row: any }) => {
+export const BookActions = ({ row }: { row: any }) => {
     const [isAlertOpen, setIsAlertOpen] = useState(false);
     const queryClient = useQueryClient();
     const book = row.original;
@@ -288,7 +289,7 @@ export const userColumn: ColumnDef<UserInfoType & { _count: { borrowedBooks: 0, 
                 'ADMIN': 'bg-red-50 text-red-700'
             };
             return (
-                <Badge variant="outline" className={colorMap[role] || 'bg-gray-50'}>
+                <Badge variant="outline" className={role && colorMap[role] ? colorMap[role] : 'bg-gray-50'}>
                     {role}
                 </Badge>
             );
@@ -364,7 +365,7 @@ export const userColumn: ColumnDef<UserInfoType & { _count: { borrowedBooks: 0, 
     },
 ]
 
-const UserActions = ({ row }: { row: any }) => {
+export const UserActions = ({ row }: { row: any }) => {
     const [isRoleAlertOpen, setIsRoleAlertOpen] = useState(false);
     const queryClient = useQueryClient();
     const user = row.original;
@@ -428,38 +429,34 @@ const UserActions = ({ row }: { row: any }) => {
         </div>
     );
 };
-    // {
-    //     accessorKey: "status",
-    //     header: ({ column }) => (
-    //         <DataTableColumnHeader column={column} title="Status" />
-    //     ),
-    //     cell: ({ row }) => {
-    //         const status = statuses.find(
-    //             (status) => status.value === row.getValue("status")
-    //         )
+// {
+//     accessorKey: "status",
+//     header: ({ column }) => (
+//         <DataTableColumnHeader column={column} title="Status" />
+//     ),
+//     cell: ({ row }) => {
+//         const status = statuses.find(
+//             (status) => status.value === row.getValue("status")
+//         )
 
-    //         if (!status) {
-    //             return null
-    //         }
+//         if (!status) {
+//             return null
+//         }
 
-    //         return (
-    //             <div className="flex w-[100px] items-center">
-    //                 {status.icon && (
-    //                     <status.icon className="mr-2 h-4 w-4 text-muted-foreground" />
-    //                 )}
-    //                 <span>{status.label}</span>
-    //             </div>
-    //         )
-    //     },
-    //     filterFn: (row, id, value) => {
-    //         return value.includes(row.getValue(id))
-    //     },
-    // },
-    // {
-    //     id: "actions",
-    //     cell: ({ row }) => <DataTableRowActions row={row} />,
-    // },
-]
+//         return (
+//             <div className="flex w-[100px] items-center">
+//                 {status.icon && (
+//                     <status.icon className="mr-2 h-4 w-4 text-muted-foreground" />
+//                 )}
+//                 <span>{status.label}</span>
+//             </div>
+//         )
+//     },
+//     filterFn: (row, id, value) => {
+//         return value.includes(row.getValue(id))
+//     },
+// },
+// },
 
 export const requestedAccountColumns: ColumnDef<UserInfoType>[] = [
     {
@@ -821,7 +818,7 @@ export const purchaseRequestColumns: ColumnDef<PurchaseRequestInterface>[] = [
         header: () => "Status",
         cell: ({ row }) => {
             const status = row.getValue("status") as string;
-            const colors = {
+            const colors: Record<string, string> = {
                 PENDING: "bg-blue-50 text-blue-700",
                 APPROVED: "bg-green-50 text-green-700",
                 DENIED: "bg-red-50 text-red-700",
@@ -845,7 +842,7 @@ export const purchaseRequestColumns: ColumnDef<PurchaseRequestInterface>[] = [
     },
 ];
 
-const PurchaseRequestActions = ({ row }: { row: any }) => {
+export const PurchaseRequestActions = ({ row }: { row: any }) => {
     const queryClient = useQueryClient();
     const request = row.original;
 
@@ -885,18 +882,18 @@ const PurchaseRequestActions = ({ row }: { row: any }) => {
         <div className="flex items-center gap-2">
             {request.status === 'PENDING' && (
                 <>
-                    <Button 
-                        variant="outline" 
-                        size="sm" 
+                    <Button
+                        variant="outline"
+                        size="sm"
                         className="text-green-600 hover:text-green-700 border-green-200"
                         onClick={() => updateStatusMutation.mutate('APPROVED')}
                         disabled={updateStatusMutation.isPending}
                     >
                         Approve
                     </Button>
-                    <Button 
-                        variant="outline" 
-                        size="sm" 
+                    <Button
+                        variant="outline"
+                        size="sm"
                         className="text-red-600 hover:text-red-700 border-red-200"
                         onClick={() => updateStatusMutation.mutate('DENIED')}
                         disabled={updateStatusMutation.isPending}
@@ -905,9 +902,9 @@ const PurchaseRequestActions = ({ row }: { row: any }) => {
                     </Button>
                 </>
             )}
-            <Button 
-                variant="ghost" 
-                size="sm" 
+            <Button
+                variant="ghost"
+                size="sm"
                 className="text-gray-500 hover:text-red-600"
                 onClick={() => deleteMutation.mutate()}
                 disabled={deleteMutation.isPending}

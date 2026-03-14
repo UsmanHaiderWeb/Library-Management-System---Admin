@@ -9,8 +9,10 @@ export interface UserInfoType {
     borrowedBooks?: string;
     createdAt?: string;
     isEmailVerified?: boolean;
-    role: 'STUDENT' | 'FACULTY' | 'STAFF' | 'ADMIN';
-    fineBalance: number;
+    isVerified?: boolean;
+    role?: 'STUDENT' | 'FACULTY' | 'STAFF' | 'ADMIN';
+    fineBalance?: number;
+    joinedAt?: string;
 }
 
 export interface BorrowedBookInterface {

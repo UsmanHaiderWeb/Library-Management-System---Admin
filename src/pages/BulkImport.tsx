@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { memo, useState } from 'react';
 import { Upload, FileSpreadsheet, Download, AlertCircle, BookOpen, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -26,7 +27,7 @@ const BulkImport = () => {
 
         try {
             const token = localStorage.getItem('adminToken');
-            const response = await api.post(`/api/admin/import/${type}`, formData, {
+            await api.post(`/api/admin/import/${type}`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     'Authorization': `Bearer ${token}`
@@ -71,7 +72,7 @@ const BulkImport = () => {
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div 
+                        <div
                             className={`border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center transition-colors ${bookFile ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200 hover:bg-gray-100'}`}
                             onDragOver={(e) => e.preventDefault()}
                             onDrop={(e) => {
@@ -90,10 +91,10 @@ const BulkImport = () => {
                             ) : (
                                 <div className="text-center">
                                     <p className="text-sm text-gray-600">Drag & drop your file here or</p>
-                                    <input 
-                                        type="file" 
-                                        id="bookImport" 
-                                        className="hidden" 
+                                    <input
+                                        type="file"
+                                        id="bookImport"
+                                        className="hidden"
                                         accept=".csv,.xlsx,.xls"
                                         onChange={(e) => setBookFile(e.target.files?.[0] || null)}
                                     />
@@ -112,8 +113,8 @@ const BulkImport = () => {
                             </Button>
                         </div>
 
-                        <Button 
-                            className="w-full bg-blue-600 hover:bg-blue-700" 
+                        <Button
+                            className="w-full bg-blue-600 hover:bg-blue-700"
                             disabled={!bookFile || isUploadingBooks}
                             onClick={() => handleFileUpload('books')}
                         >
@@ -134,7 +135,7 @@ const BulkImport = () => {
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div 
+                        <div
                             className={`border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center transition-colors ${userFile ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200 hover:bg-gray-100'}`}
                             onDragOver={(e) => e.preventDefault()}
                             onDrop={(e) => {
@@ -153,10 +154,10 @@ const BulkImport = () => {
                             ) : (
                                 <div className="text-center">
                                     <p className="text-sm text-gray-600">Drag & drop your file here or</p>
-                                    <input 
-                                        type="file" 
-                                        id="userImport" 
-                                        className="hidden" 
+                                    <input
+                                        type="file"
+                                        id="userImport"
+                                        className="hidden"
                                         accept=".csv,.xlsx,.xls"
                                         onChange={(e) => setUserFile(e.target.files?.[0] || null)}
                                     />
@@ -175,8 +176,8 @@ const BulkImport = () => {
                             </Button>
                         </div>
 
-                        <Button 
-                            className="w-full bg-green-600 hover:bg-green-700" 
+                        <Button
+                            className="w-full bg-green-600 hover:bg-green-700"
                             disabled={!userFile || isUploadingUsers}
                             onClick={() => handleFileUpload('users')}
                         >
@@ -203,8 +204,5 @@ const BulkImport = () => {
         </div>
     );
 };
-
-// Re-importing icons locally because BookOpen/Users might be missing from this snippet context
-import { BookOpen, Users } from 'lucide-react';
 
 export default memo(BulkImport);

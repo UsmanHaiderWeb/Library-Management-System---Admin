@@ -10,14 +10,9 @@ import BookCover from '@/components/BookCover';
 import { api } from '@/lib/AxiosCalls';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
-    ImageKitAbortError,
-    ImageKitInvalidRequestError,
-    ImageKitServerError,
-    ImageKitUploadNetworkError,
     upload,
 } from "@imagekit/react";
 import { toast } from 'sonner';
-import { X } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 const bookSchema = z.object({
@@ -33,7 +28,7 @@ const bookSchema = z.object({
     shelfNumber: z.string().min(1, "Shelf Number is required"),
     isOnline: z.boolean().optional(),
     onlineFile: z.any().optional()
-}).superRefine((data, ctx) => {
+}).superRefine((data) => {
     if (data.isOnline && !data.onlineFile) {
         // If editing, we might already have a file, so this validation might need adjustment if we don't require re-upload.
         // For now, let's assume if they check isOnline, they might want to provide a file or keep existing.
@@ -90,8 +85,7 @@ const EditBookForm = () => {
         handleSubmit,
         formState: { errors },
         watch,
-        reset,
-        setValue
+        reset
     } = useForm<BookForm>({
         resolver: zodResolver(bookSchema),
         defaultValues: {

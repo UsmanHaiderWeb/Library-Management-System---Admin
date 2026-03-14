@@ -54,9 +54,10 @@ export function DataTable<TData, TValue>({
     totalPages,
     placeHolder,
     refetchData,
-    loadingData = true,
+    loadingData = false,
     searchQuery,
     setSearchQuery,
+    onFilterChange,
 }: DataTableProps<TData, TValue>) {
     const [rowSelection, setRowSelection] = React.useState({})
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})

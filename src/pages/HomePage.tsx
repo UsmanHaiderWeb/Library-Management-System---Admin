@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, ArrowUpRightFromSquare, Loader2, TrendingUp } from 'lucide-react';
@@ -5,7 +6,7 @@ import BookCover from '@/components/BookCover';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/AxiosCalls';
-import { createChart, ColorType } from 'lightweight-charts';
+import { createChart, ColorType, LineSeries } from 'lightweight-charts';
 import { useEffect, useRef, memo } from 'react';
 
 const BorrowingChart = () => {
@@ -33,7 +34,7 @@ const BorrowingChart = () => {
             },
         });
 
-        const lineSeries = chart.addLineSeries({
+        const lineSeries = chart.addSeries(LineSeries, {
             color: '#2563eb',
             lineWidth: 2,
         });

@@ -37,7 +37,9 @@ const SingleUserDetails = () => {
             name: "John Doe",
             email: "john.doe@example.com",
             class: "Class 10A",
-            phoneNumber: "+1234567890"
+            phoneNumber: "+1234567890",
+            role: "STUDENT",
+            fineBalance: 0
         });
         setLoading(false);
     }, [userId]);
