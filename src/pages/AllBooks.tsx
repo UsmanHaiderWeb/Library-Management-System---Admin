@@ -7,8 +7,10 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/AxiosCalls";
 import { BookInterface } from "@/lib/types&interfaces";
 
-const fetchAllUsers = async ({ token, pageNumber, searchQuery }: { token: string, pageNumber: number, searchQuery: string }) => {
-    const { data } = await api.get(`/api/admin/getAllBooks?pageNumber=${pageNumber}&searchQuery=${searchQuery}`, {
+import { DateRange } from "react-day-picker";
+
+const fetchAllBooks = async ({ token, pageNumber, searchQuery, fromDate, toDate }: { token: string, pageNumber: number, searchQuery: string, fromDate?: string, toDate?: string }) => {
+    const { data } = await api.get(`/api/admin/getAllBooks?pageNumber=${pageNumber}&searchQuery=${searchQuery}&fromDate=${fromDate || ''}&toDate=${toDate || ''}`, {
         headers: {
             'Authorization': `Bearer ${token}`,
         },
@@ -17,16 +19,25 @@ const fetchAllUsers = async ({ token, pageNumber, searchQuery }: { token: string
     return data;
 }
 
-function AllUsers() {
+function AllBooks() {
     const [pageNumber, setPageNumber] = useState(0);
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [searchQueryForApi, setSearchQueryForApi] = useState<string>('');
+    const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+    const [dateRangeForApi, setDateRangeForApi] = useState<DateRange | undefined>(undefined);
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+    const dateTimeoutRef = useRef<NodeJS.Timeout | null>(null)
     const token = localStorage.getItem('adminToken') || '';
 
     const { data, isPending, refetch } = useQuery<{ totalPages: number, books: BookInterface[] }>({
-        queryKey: ['books', pageNumber, searchQueryForApi || 'nothing to query'],
-        queryFn: () => fetchAllUsers({ token, pageNumber, searchQuery: searchQueryForApi }),
+        queryKey: ['books', pageNumber, searchQueryForApi || 'nothing to query', dateRangeForApi?.from?.toISOString(), dateRangeForApi?.to?.toISOString()],
+        queryFn: () => fetchAllBooks({ 
+            token, 
+            pageNumber, 
+            searchQuery: searchQueryForApi,
+            fromDate: dateRangeForApi?.from?.toISOString(),
+            toDate: dateRangeForApi?.to?.toISOString()
+        }),
         enabled: !!token,
         staleTime: 1000 * 60 * 5,
         refetchOnWindowFocus: false,
@@ -50,6 +61,21 @@ function AllUsers() {
         }
     }, [searchQuery])
 
+    useEffect(() => {
+        setPageNumber(0);
+        if (dateTimeoutRef.current) {
+            clearTimeout(dateTimeoutRef.current);
+        }
+
+        dateTimeoutRef.current = setTimeout(() => {
+            setDateRangeForApi(dateRange);
+        }, 1000)
+
+        return () => {
+            if (dateTimeoutRef.current) clearTimeout(dateTimeoutRef.current);
+        }
+    }, [dateRange])
+
     return (
         <div className="px-7 w-full pb-10">
             <title>List All Books - GICCL | Library</title>
@@ -60,11 +86,13 @@ function AllUsers() {
                 setPageNumber={setPageNumber}
                 totalPages={data?.totalPages || 1}
                 refetchData={refetch}
-                loadingData={isPending || (searchQuery != searchQueryForApi)}
+                loadingData={isPending || (searchQuery != searchQueryForApi) || (dateRange != dateRangeForApi)}
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
+                dateRange={dateRange}
+                setDateRange={setDateRange}
             />
         </div>
     )
 }
-export default memo(AllUsers)
+export default memo(AllBooks)

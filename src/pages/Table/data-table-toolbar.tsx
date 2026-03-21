@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input"
 import { isEmailVerifiedStatuses } from "./data"
 import { DataTableFacetedFilter } from "./data-table-faceted-filter"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { DatePickerWithRange } from "@/components/ui/date-range-picker"
+import { DateRange } from "react-day-picker"
 
 const userRoles = [
     { value: "STUDENT", label: "Student" },
@@ -29,6 +31,8 @@ interface DataTableToolbarProps<TData> {
     refetching?: boolean
     setRefetching?: React.Dispatch<React.SetStateAction<boolean>>
     handleRefetchCall?: any
+    dateRange?: DateRange
+    setDateRange?: (date: DateRange | undefined) => void
 }
 
 export function DataTableToolbar<TData>({
@@ -39,6 +43,8 @@ export function DataTableToolbar<TData>({
     refetching,
     setRefetching,
     handleRefetchCall,
+    dateRange,
+    setDateRange,
 }: DataTableToolbarProps<TData>) {
     const isFiltered = table.getState().columnFilters?.length > 0
 
@@ -75,6 +81,11 @@ export function DataTableToolbar<TData>({
                             options={userRoles}
                         />
                     )}
+
+                {setDateRange && (
+                    <DatePickerWithRange date={dateRange} setDate={setDateRange} />
+                )}
+
                 {isFiltered && (
                     <Button
                         variant="ghost"

@@ -44,6 +44,8 @@ interface DataTableProps<TData, TValue> {
     searchQuery?: string;
     setSearchQuery?: React.Dispatch<React.SetStateAction<string>>
     onFilterChange?: (filters: any[]) => void;
+    dateRange?: { from: Date | undefined; to: Date | undefined }
+    setDateRange?: (date: { from: Date | undefined; to: Date | undefined } | undefined) => void
 }
 
 export function DataTable<TData, TValue>({
@@ -58,6 +60,8 @@ export function DataTable<TData, TValue>({
     searchQuery,
     setSearchQuery,
     onFilterChange,
+    dateRange,
+    setDateRange,
 }: DataTableProps<TData, TValue>) {
     const [rowSelection, setRowSelection] = React.useState({})
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
@@ -115,6 +119,8 @@ export function DataTable<TData, TValue>({
                 refetching={refetching || loadingData}
                 setRefetching={setRefetching}
                 handleRefetchCall={refetchData}
+                dateRange={dateRange}
+                setDateRange={setDateRange}
             />
             <ScrollArea className="w-full border rounded-md">
                 <div className="space-y-4 w-full min-w-[800px] pb-1">
