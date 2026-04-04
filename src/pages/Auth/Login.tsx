@@ -44,7 +44,7 @@ const Login = () => {
         onError: (err: AxiosError<{ message: string }>) => {
             setError("root", { message: err.response?.data?.message });
         },
-        onSuccess: (data: {token: string, message: string}) => {
+        onSuccess: (data: { token: string, message: string }) => {
             // Handle successful login
             localStorage.setItem('adminToken', data.token)
             navigate('/')
