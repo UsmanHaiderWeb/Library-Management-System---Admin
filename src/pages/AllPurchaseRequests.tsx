@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable react-hooks/exhaustive-deps */
+ 
+ 
 import { memo, useEffect, useRef, useState } from "react"
 import { purchaseRequestColumns } from "./Table/columns"
 import { DataTable } from "./Table/data-table"

@@ -44,8 +44,8 @@ interface DataTableProps<TData, TValue> {
     searchQuery?: string;
     setSearchQuery?: React.Dispatch<React.SetStateAction<string>>
     onFilterChange?: (filters: any[]) => void;
-    dateRange?: { from: Date | undefined; to: Date | undefined }
-    setDateRange?: (date: { from: Date | undefined; to: Date | undefined } | undefined) => void
+    dateRange?: { from: Date | undefined; to?: Date | undefined }
+    setDateRange?: (date: { from: Date | undefined; to?: Date | undefined } | undefined) => void
 }
 
 export function DataTable<TData, TValue>({

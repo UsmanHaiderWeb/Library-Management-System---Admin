@@ -25,7 +25,7 @@ const BookListing: React.FC<BookListingProps> = ({ books, className = '' }) => {
                             <BookCover coverImage={book.coverImage} coverColor={book.coverColor} variant="regular" />
                         </div>
                         <div className="mt-4 text-lg font-semibold text-simple text-center line-clamp-2">{book.title}</div>
-                        <div className="italic line-clamp-2 text-primary text-base mt-1 text-center">{book.categories.join(', ')}</div>
+                        <div className="italic line-clamp-2 text-primary text-base mt-1 text-center">{book.categories?.join(', ')}</div>
                     </Link>
                 </div>
             ))}

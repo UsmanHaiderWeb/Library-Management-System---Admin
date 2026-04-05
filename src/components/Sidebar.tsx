@@ -1,9 +1,13 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Users, BookOpen, ClipboardList, ListTodoIcon, BadgePlus, ShoppingCart, FileUp, BarChart2, UserPlus, RefreshCcw, DollarSign } from 'lucide-react';
+import { Home, Users, BookOpen, ClipboardList, ListTodoIcon, BadgePlus, ShoppingCart, FileUp, BarChart2, UserPlus, RefreshCcw, DollarSign, AlertTriangle, Shield } from 'lucide-react';
 
-export default function Sidebar() {
+interface SidebarProps {
+    onNavigate?: () => void;
+}
+
+export default function Sidebar({ onNavigate }: SidebarProps) {
     return (
-        <aside className="h-screen w-72 bg-white border-r flex flex-col py-6 px-4">
+        <aside className="h-screen w-72 bg-white border-r flex flex-col py-6 px-4 overflow-y-auto">
             <div className="flex items-center gap-3 mb-4 px-2">
                 <div className="bg-blue rounded-full p-2">
                     <BookOpen className="text-white w-5 h-5" />
@@ -11,7 +15,7 @@ export default function Sidebar() {
                 <span className="text-xl font-bold text-bluebg-blue">GICCL - Library</span>
             </div>
             <div className="border-b border-dotted border-gray-300 mb-4" />
-            <nav className="flex flex-col space-y-1">
+            <nav className="flex flex-col space-y-1" onClick={onNavigate}>
                 <NavLink
                     to="/"
                     className={({ isActive }) =>
@@ -103,6 +107,15 @@ export default function Sidebar() {
                     Renewal Requests
                 </NavLink>
                 <NavLink
+                    to="/overdue"
+                    className={({ isActive }) =>
+                        `text-[15px] flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue text-white' : 'text-gray-700 hover:bg-gray-100'}`
+                    }
+                >
+                    <AlertTriangle className="w-4 h-4" />
+                    Overdue Books
+                </NavLink>
+                <NavLink
                     to="/fines"
                     className={({ isActive }) =>
                         `text-[15px] flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue text-white' : 'text-gray-700 hover:bg-gray-100'}`
@@ -119,6 +132,15 @@ export default function Sidebar() {
                 >
                     <FileUp className="w-4 h-4" />
                     Bulk Import
+                </NavLink>
+                <NavLink
+                    to="/audit-logs"
+                    className={({ isActive }) =>
+                        `text-[15px] flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue text-white' : 'text-gray-700 hover:bg-gray-100'}`
+                    }
+                >
+                    <Shield className="w-4 h-4" />
+                    Audit Logs
                 </NavLink>
             </nav>
         </aside>

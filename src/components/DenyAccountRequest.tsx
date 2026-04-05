@@ -27,7 +27,7 @@ function DenyAccountRequest({
         mutationFn: async () => {
             const token = localStorage.getItem("adminToken") || '';
             if (!token) throw new Error("No authentication token found");
-            return denyStudentAccount(studentId, token);
+            return denyStudentAccount(studentId);
         },
         onSuccess: () => {
             toast.success("Student account request denied successfully");

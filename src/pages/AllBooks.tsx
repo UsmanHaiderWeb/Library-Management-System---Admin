@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable react-hooks/exhaustive-deps */
+ 
 import { memo, useEffect, useRef, useState } from "react"
 import { bookTableColumns } from "./Table/columns"
 import { DataTable } from "./Table/data-table"
@@ -9,13 +9,10 @@ import { BookInterface } from "@/lib/types&interfaces";
 
 import { DateRange } from "react-day-picker";
 
-const fetchAllBooks = async ({ token, pageNumber, searchQuery, fromDate, toDate }: { token: string, pageNumber: number, searchQuery: string, fromDate?: string, toDate?: string }) => {
-    const { data } = await api.get(`/api/admin/getAllBooks?pageNumber=${pageNumber}&searchQuery=${searchQuery}&fromDate=${fromDate || ''}&toDate=${toDate || ''}`, {
-        headers: {
-            'Authorization': `Bearer ${token}`,
-        },
+const fetchAllBooks = async ({ pageNumber, searchQuery, fromDate, toDate }: { pageNumber: number, searchQuery: string, fromDate?: string, toDate?: string }) => {
+    const { data } = await api.get(`/api/admin/getAllBooks`, {
+        params: { pageNumber, searchQuery, fromDate: fromDate || '', toDate: toDate || '' },
     });
-
     return data;
 }
 
@@ -27,18 +24,14 @@ function AllBooks() {
     const [dateRangeForApi, setDateRangeForApi] = useState<DateRange | undefined>(undefined);
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
     const dateTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-    const token = localStorage.getItem('adminToken') || '';
-
     const { data, isPending, refetch } = useQuery<{ totalPages: number, books: BookInterface[] }>({
         queryKey: ['books', pageNumber, searchQueryForApi || 'nothing to query', dateRangeForApi?.from?.toISOString(), dateRangeForApi?.to?.toISOString()],
-        queryFn: () => fetchAllBooks({ 
-            token, 
-            pageNumber, 
+        queryFn: () => fetchAllBooks({
+            pageNumber,
             searchQuery: searchQueryForApi,
             fromDate: dateRangeForApi?.from?.toISOString(),
             toDate: dateRangeForApi?.to?.toISOString()
         }),
-        enabled: !!token,
         staleTime: 1000 * 60 * 5,
         refetchOnWindowFocus: false,
         refetchOnMount: false,

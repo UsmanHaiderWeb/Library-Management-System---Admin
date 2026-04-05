@@ -10,13 +10,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { DateRange } from "react-day-picker";
 import BorrowedBooksHistory from "./BorrowedBooksHistory";
 
-const fetchBorrowedBooks = async ({ token, pageNumber, searchQuery, fromDate, toDate }: { token: string, pageNumber: number, searchQuery: string, fromDate?: string, toDate?: string }) => {
-    const { data } = await api.get(`/api/admin/borrowed-books/all?pageNumber=${pageNumber}&searchQuery=${searchQuery}&fromDate=${fromDate || ''}&toDate=${toDate || ''}`, {
-        headers: {
-            'Authorization': `Bearer ${token}`,
-        },
+const fetchBorrowedBooks = async ({ pageNumber, searchQuery, fromDate, toDate }: { pageNumber: number, searchQuery: string, fromDate?: string, toDate?: string }) => {
+    const { data } = await api.get(`/api/admin/borrowed-books/all`, {
+        params: { pageNumber, searchQuery, fromDate: fromDate || '', toDate: toDate || '' },
     });
-
     return data;
 }
 
@@ -35,9 +32,8 @@ function BorrowedBooks() {
 
     const { data, isPending, refetch } = useQuery<{ totalPages: number, borrowedBooks: AllBorrowedBooksTableInterface[] }>({
         queryKey: ['all-borrowed-books', pageNumber, searchQueryForApi || 'nothing to query', dateRangeForApi?.from?.toISOString(), dateRangeForApi?.to?.toISOString()],
-        queryFn: () => fetchBorrowedBooks({ 
-            token, 
-            pageNumber, 
+        queryFn: () => fetchBorrowedBooks({
+            pageNumber,
             searchQuery: searchQueryForApi,
             fromDate: dateRangeForApi?.from?.toISOString(),
             toDate: dateRangeForApi?.to?.toISOString()

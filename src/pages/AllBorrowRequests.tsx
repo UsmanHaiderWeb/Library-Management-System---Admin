@@ -9,13 +9,10 @@ import { AllBorrowRequestsTableInterface } from "@/lib/types&interfaces";
 import { useLocation, useNavigate } from "react-router-dom";
 import { DateRange } from "react-day-picker";
 
-const fetchAllBorrowRequests = async ({ token, pageNumber, searchQuery, fromDate, toDate }: { token: string, pageNumber: number, searchQuery: string, fromDate?: string, toDate?: string }) => {
-    const { data } = await api.get(`/api/admin/all-borrow-requests?pageNumber=${pageNumber}&searchQuery=${searchQuery}&fromDate=${fromDate || ''}&toDate=${toDate || ''}`, {
-        headers: {
-            'Authorization': `Bearer ${token}`,
-        },
+const fetchAllBorrowRequests = async ({ pageNumber, searchQuery, fromDate, toDate }: { pageNumber: number, searchQuery: string, fromDate?: string, toDate?: string }) => {
+    const { data } = await api.get(`/api/admin/all-borrow-requests`, {
+        params: { pageNumber, searchQuery, fromDate: fromDate || '', toDate: toDate || '' },
     });
-
     return data;
 }
 
@@ -27,20 +24,17 @@ function AllBorrowRequests() {
     const [dateRangeForApi, setDateRangeForApi] = useState<DateRange | undefined>(undefined);
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
     const dateTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-    const token = localStorage.getItem('adminToken') || '';
     const { state } = useLocation();
     const navigate = useNavigate();
 
     const { data, isPending, refetch } = useQuery<{ totalPages: number, requests: AllBorrowRequestsTableInterface[] }>({
         queryKey: ['borrow-requests', pageNumber, searchQueryForApi || 'nothing to query', dateRangeForApi?.from?.toISOString(), dateRangeForApi?.to?.toISOString()],
-        queryFn: () => fetchAllBorrowRequests({ 
-            token, 
-            pageNumber, 
+        queryFn: () => fetchAllBorrowRequests({
+            pageNumber,
             searchQuery: searchQueryForApi,
             fromDate: dateRangeForApi?.from?.toISOString(),
             toDate: dateRangeForApi?.to?.toISOString()
         }),
-        enabled: !!token,
         staleTime: 1000 * 60 * 5,
         refetchOnWindowFocus: false,
         refetchOnMount: false,

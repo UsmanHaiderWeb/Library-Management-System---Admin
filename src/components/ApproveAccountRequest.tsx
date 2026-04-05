@@ -27,7 +27,7 @@ function ApproveAccountRequest({
         mutationFn: async () => {
             const token = localStorage.getItem("adminToken") || '';
             if (!token) throw new Error("No authentication token found");
-            return approveStudentAccount(studentId, token);
+            return approveStudentAccount(studentId);
         },
         onSuccess: () => {
             toast.success("Student account request approved successfully");
