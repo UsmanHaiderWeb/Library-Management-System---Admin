@@ -25,7 +25,7 @@ function ApproveAccountRequest({
 }: ApproveAccountRequestProps) {
     const { mutate: approveAccount, isPending } = useMutation({
         mutationFn: async () => {
-            const token = localStorage.getItem("token") || '654';
+            const token = localStorage.getItem("adminToken") || '';
             if (!token) throw new Error("No authentication token found");
             return approveStudentAccount(studentId, token);
         },

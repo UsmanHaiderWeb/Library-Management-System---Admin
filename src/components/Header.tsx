@@ -1,6 +1,7 @@
 import React from 'react';
 import { LogOut } from 'lucide-react';
 import { Button } from './ui/button';
+import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
     name?: string;
@@ -9,6 +10,13 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ name = 'Adrian Hajdin', email = 'adrian@jsmastery.pro', avatarUrl = '/dummyUserImage.png' }) => {
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        localStorage.removeItem('adminToken');
+        navigate('/login');
+    };
+
     return (
         <header className="px-8 py-4 flex items-center justify-between">
             <div>
@@ -24,7 +32,7 @@ const Header: React.FC<HeaderProps> = ({ name = 'Adrian Hajdin', email = 'adrian
                     <span className="font-medium text-gray-800 leading-tight text-sm">{name}</span>
                     <span className="text-xs text-gray-400 -mt-0.5">{email}</span>
                 </div>
-                <Button variant='ghost' className="ml-2 h-9 w-9 rounded-full">
+                <Button variant='ghost' className="ml-2 h-9 w-9 rounded-full" onClick={handleLogout}>
                     <LogOut className="w-5 h-5 text-rose-400" />
                 </Button>
             </div>

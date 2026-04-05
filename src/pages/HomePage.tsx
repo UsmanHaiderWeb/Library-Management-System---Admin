@@ -11,9 +11,21 @@ import { useEffect, useRef, memo } from 'react';
 
 const BorrowingChart = () => {
     const chartContainerRef = useRef<HTMLDivElement>(null);
+    const token = localStorage.getItem('adminToken') || '';
+
+    const { data: trendsData } = useQuery({
+        queryKey: ['borrowing-trends'],
+        queryFn: async () => {
+            const { data } = await api.get('/api/admin/borrowing-trends?days=30', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            return data.trends as { time: string; value: number }[];
+        },
+        enabled: !!token,
+    });
 
     useEffect(() => {
-        if (!chartContainerRef.current) return;
+        if (!chartContainerRef.current || !trendsData || trendsData.length === 0) return;
 
         const chart = createChart(chartContainerRef.current, {
             layout: {
@@ -39,21 +51,7 @@ const BorrowingChart = () => {
             lineWidth: 2,
         });
 
-        // Mock data for trends
-        const data = [
-            { time: '2026-03-01', value: 12 },
-            { time: '2026-03-02', value: 15 },
-            { time: '2026-03-03', value: 14 },
-            { time: '2026-03-04', value: 18 },
-            { time: '2026-03-05', value: 25 },
-            { time: '2026-03-06', value: 22 },
-            { time: '2026-03-07', value: 30 },
-            { time: '2026-03-08', value: 28 },
-            { time: '2026-03-09', value: 35 },
-            { time: '2026-03-10', value: 42 },
-        ];
-
-        lineSeries.setData(data);
+        lineSeries.setData(trendsData);
 
         const handleResize = () => {
             if (chartContainerRef.current) {
@@ -67,7 +65,7 @@ const BorrowingChart = () => {
             window.removeEventListener('resize', handleResize);
             chart.remove();
         };
-    }, []);
+    }, [trendsData]);
 
     return <div ref={chartContainerRef} className="w-full" />;
 };

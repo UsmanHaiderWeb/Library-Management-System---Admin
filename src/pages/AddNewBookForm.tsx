@@ -341,7 +341,7 @@ const AddNewBookForm = () => {
             />
 
             <Button type="submit" className="w-full bg-[#283A8A] text-white mt-4" disabled={mutation.isPending || isBookCreating}>
-                {mutation.isPending || isBookCreating ? 'Updating...' : 'Update Book'}
+                {mutation.isPending || isBookCreating ? 'Creating...' : 'Create Book'}
             </Button>
         </form>
     );

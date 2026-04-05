@@ -4,9 +4,9 @@ export const api = axios.create({
     baseURL: "http://localhost:3000"
 })
 
-export const denyStudentAccount = async (studentId: string, token: string) => {
+export const approveStudentAccount = async (studentId: string, token: string) => {
     const response = await api.post(
-        `/students/${studentId}/deny`,
+        `/api/admin/verify-account/${studentId}`,
         {},
         {
             headers: {
@@ -17,9 +17,9 @@ export const denyStudentAccount = async (studentId: string, token: string) => {
     return response.data;
 };
 
-export const approveStudentAccount = async (studentId: string, token: string) => {
+export const denyStudentAccount = async (studentId: string, token: string) => {
     const response = await api.post(
-        `/students/${studentId}/approve`,
+        `/api/admin/deny-account/${studentId}`,
         {},
         {
             headers: {
