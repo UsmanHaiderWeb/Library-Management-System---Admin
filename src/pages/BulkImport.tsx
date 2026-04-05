@@ -46,9 +46,14 @@ const BulkImport = () => {
     };
 
     const downloadTemplate = (type: 'books' | 'users') => {
-        // In a real app, this would be a link to a static CSV file
-        // For now, let's just show a toast or provide a mock blob
-        toast.info(`Downloading ${type} template...`);
+        const url = `http://localhost:3000/templates/${type}_template.csv`;
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${type}_template.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success(`${type} template downloaded!`);
     };
 
     return (
