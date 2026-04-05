@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Users, BookOpen, ClipboardList, ListTodoIcon, BadgePlus, ShoppingCart, FileUp } from 'lucide-react';
+import { Home, Users, BookOpen, ClipboardList, ListTodoIcon, BadgePlus, ShoppingCart, FileUp, BarChart2, UserPlus, RefreshCcw, DollarSign } from 'lucide-react';
 
 export default function Sidebar() {
     return (
@@ -30,15 +30,15 @@ export default function Sidebar() {
                     <BadgePlus className="w-4 h-4" />
                     Add New Book
                 </NavLink>
-                {/* <NavLink
-                    to="/analysis"
+                <NavLink
+                    to="/analytics"
                     className={({ isActive }) =>
                         `text-[15px] flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue text-white' : 'text-gray-700 hover:bg-gray-100'}`
                     }
                 >
                     <BarChart2 className="w-4 h-4" />
                     Analysis
-                </NavLink> */}
+                </NavLink>
                 <NavLink
                     to="/users"
                     className={({ isActive }) =>
@@ -75,7 +75,7 @@ export default function Sidebar() {
                     <ClipboardList className="w-4 h-4" />
                     Borrow Requests
                 </NavLink>
-                {/* <NavLink
+                <NavLink
                     to="/account-requests"
                     className={({ isActive }) =>
                         `text-[15px] flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue text-white' : 'text-gray-700 hover:bg-gray-100'}`
@@ -83,7 +83,7 @@ export default function Sidebar() {
                 >
                     <UserPlus className="w-4 h-4" />
                     Account Requests
-                </NavLink> */}
+                </NavLink>
                 <NavLink
                     to="/purchase-requests"
                     className={({ isActive }) =>
@@ -92,6 +92,24 @@ export default function Sidebar() {
                 >
                     <ShoppingCart className="w-4 h-4" />
                     Purchase Requests
+                </NavLink>
+                <NavLink
+                    to="/renewal-requests"
+                    className={({ isActive }) =>
+                        `text-[15px] flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue text-white' : 'text-gray-700 hover:bg-gray-100'}`
+                    }
+                >
+                    <RefreshCcw className="w-4 h-4" />
+                    Renewal Requests
+                </NavLink>
+                <NavLink
+                    to="/fines"
+                    className={({ isActive }) =>
+                        `text-[15px] flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue text-white' : 'text-gray-700 hover:bg-gray-100'}`
+                    }
+                >
+                    <DollarSign className="w-4 h-4" />
+                    Fine History
                 </NavLink>
                 <NavLink
                     to="/bulk-import"

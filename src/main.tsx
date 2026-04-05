@@ -21,6 +21,8 @@ const BorrowedBooks = lazy(() => import('./pages/AllBorrowedBooks.tsx'));
 const SingleBookDetails = lazy(() => import('./pages/SingleBookDetails.tsx'));
 const SingleUserDetails = lazy(() => import('./pages/SingleUserDetails.tsx'));
 const Analysis = lazy(() => import('./pages/Analysis.tsx'));
+const AllRenewalRequests = lazy(() => import('./pages/AllRenewalRequests.tsx'));
+const AllFines = lazy(() => import('./pages/AllFines.tsx'));
 
 
 const router = createBrowserRouter([
@@ -83,6 +85,14 @@ const router = createBrowserRouter([
             {
                 path: '/analytics',
                 element: <Analysis />,
+            },
+            {
+                path: '/renewal-requests',
+                element: <AllRenewalRequests />,
+            },
+            {
+                path: '/fines',
+                element: <AllFines />,
             },
         ]
     },
