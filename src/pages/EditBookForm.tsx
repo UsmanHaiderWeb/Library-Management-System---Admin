@@ -17,6 +17,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 const bookSchema = z.object({
     bookNumber: z.string().min(1, 'Book number is required'),
+    isbn: z.string().optional(),
     bookName: z.string().min(1, 'Book name is required'),
     summary: z.string().min(1, 'Summary is required'),
     author: z.string().min(1, 'Please provide author name'),
@@ -205,6 +206,10 @@ const EditBookForm = () => {
                 <label className="block mb-1 font-medium">Book Number</label>
                 <Input placeholder="Enter the book number" {...register('bookNumber')} disabled={mutation.isPending || isBookUpdating} />
                 {errors.bookNumber && <p className='text-sm text-red-500'>{errors.bookNumber.message}</p>}
+            </div>
+            <div className="mb-5">
+                <label className="block mb-1 font-medium">ISBN <span className="text-gray-400 text-sm font-normal">(optional)</span></label>
+                <Input placeholder="e.g. 978-3-16-148410-0" {...register('isbn')} disabled={mutation.isPending || isBookUpdating} />
             </div>
             <div className="mb-5">
                 <label className="block mb-1 font-medium">Book Name</label>
