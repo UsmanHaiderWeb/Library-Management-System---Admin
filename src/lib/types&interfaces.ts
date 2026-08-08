@@ -10,7 +10,7 @@ export interface UserInfoType {
     createdAt?: string;
     isEmailVerified?: boolean;
     isVerified?: boolean;
-    role?: 'STUDENT' | 'FACULTY' | 'STAFF' | 'ADMIN';
+    role?: 'STUDENT' | 'FACULTY' | 'STAFF';
     fineBalance?: number;
     joinedAt?: string;
 }
@@ -88,7 +88,7 @@ export interface PurchaseRequestInterface {
     bookName: string;
     author: string;
     reason: string;
-    status: "PENDING" | "APPROVED" | "DENIED";
+    status: "PENDING" | "APPROVED" | "REJECTED";
     requestedOn: string;
     user: {
         id: string;

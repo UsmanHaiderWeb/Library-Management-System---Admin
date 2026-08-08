@@ -11,26 +11,28 @@ import {
 } from "./ui/dialog";
 import { RefreshCcw } from "lucide-react";
 import { denyStudentAccount } from "@/lib/AxiosCalls";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface DenyAccountRequestProps {
-    studentId: string,
+    userId: string,
     onConfirm?: () => void;
 }
 
 function DenyAccountRequest({
     onConfirm,
-    studentId,
+    userId,
 }: DenyAccountRequestProps) {
+    const queryClient = useQueryClient();
     const { mutate: denyAccount, isPending } = useMutation({
         mutationFn: async () => {
             const token = localStorage.getItem("adminToken") || '';
             if (!token) throw new Error("No authentication token found");
-            return denyStudentAccount(studentId);
+            return denyStudentAccount(userId);
         },
         onSuccess: () => {
             toast.success("Student account request denied successfully");
+            queryClient.invalidateQueries({ queryKey: ['all-account-requests'] });
             onConfirm?.();
         },
         onError: (error) => {

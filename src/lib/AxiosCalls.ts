@@ -62,7 +62,7 @@ export const deleteBook = (bookId: string) =>
     api.delete(`/api/books/delete/${bookId}`).then(r => r.data);
 
 export const getRecentBooks = () =>
-    api.get("/api/books/getAllBooks?pageNumber=0&searchQuery=").then(r => r.data);
+    api.get("/api/admin/getAllBooks?pageNumber=0&searchQuery=").then(r => r.data);
 
 // ===================== IMAGEKIT =====================
 
@@ -85,11 +85,11 @@ export const updateUserRole = (userId: string, role: string) =>
 export const getAllAccountRequests = (params: { pageNumber: number; searchQuery?: string }) =>
     api.get("/api/admin/getAllAccountRequests", { params }).then(r => r.data);
 
-export const approveStudentAccount = (studentId: string) =>
-    api.post(`/api/admin/verify-account/${studentId}`).then(r => r.data);
+export const approveStudentAccount = (userId: string) =>
+    api.post(`/api/admin/verify-account/${userId}`).then(r => r.data);
 
-export const denyStudentAccount = (studentId: string) =>
-    api.post(`/api/admin/deny-account/${studentId}`).then(r => r.data);
+export const denyStudentAccount = (userId: string) =>
+    api.post(`/api/admin/deny-account/${userId}`).then(r => r.data);
 
 // ===================== BORROW MANAGEMENT =====================
 

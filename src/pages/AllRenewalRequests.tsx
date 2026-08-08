@@ -6,7 +6,7 @@ import { format } from "date-fns";
 import { RefreshCcw } from "lucide-react";
 
 interface RenewalRequest {
-    _id: string;
+    id: string;
     studentName: string;
     studentId: string;
     bookName: string;
@@ -131,7 +131,7 @@ function AllRenewalRequests() {
                             </thead>
                             <tbody>
                                 {requests.map((req, index) => (
-                                    <tr key={req._id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                                    <tr key={req.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                                         <td className="px-4 py-3 text-gray-700">{index + 1}</td>
                                         <td className="px-4 py-3 text-gray-900 font-medium">{req.studentName}</td>
                                         <td className="px-4 py-3 text-gray-700">{req.studentId}</td>
@@ -148,22 +148,22 @@ function AllRenewalRequests() {
                                             {req.status === "PENDING" ? (
                                                 <div className="flex items-center gap-2">
                                                     <button
-                                                        onClick={() => approveMutation.mutate(req._id)}
-                                                        disabled={actionInProgress === req._id}
+                                                        onClick={() => approveMutation.mutate(req.id)}
+                                                        disabled={actionInProgress === req.id}
                                                         className="bg-green-100 hover:bg-green-200 text-green-700 text-xs px-3 py-1.5 rounded-md font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                                     >
-                                                        {actionInProgress === req._id && approveMutation.isPending ? (
+                                                        {actionInProgress === req.id && approveMutation.isPending ? (
                                                             <RefreshCcw className="h-3 w-3 animate-spin inline" style={{ animationDuration: "0.3s" }} />
                                                         ) : (
                                                             "Approve"
                                                         )}
                                                     </button>
                                                     <button
-                                                        onClick={() => rejectMutation.mutate(req._id)}
-                                                        disabled={actionInProgress === req._id}
+                                                        onClick={() => rejectMutation.mutate(req.id)}
+                                                        disabled={actionInProgress === req.id}
                                                         className="bg-red-100 hover:bg-red-200 text-red-700 text-xs px-3 py-1.5 rounded-md font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                                     >
-                                                        {actionInProgress === req._id && rejectMutation.isPending ? (
+                                                        {actionInProgress === req.id && rejectMutation.isPending ? (
                                                             <RefreshCcw className="h-3 w-3 animate-spin inline" style={{ animationDuration: "0.3s" }} />
                                                         ) : (
                                                             "Reject"

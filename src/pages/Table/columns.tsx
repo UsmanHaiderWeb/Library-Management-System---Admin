@@ -409,7 +409,7 @@ export const UserActions = ({ row }: { row: any }) => {
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <div className="flex flex-col gap-2 py-4">
-                        {['STUDENT', 'FACULTY', 'STAFF', 'ADMIN'].map((role) => (
+                        {['STUDENT', 'FACULTY', 'STAFF'].map((role) => (
                             <Button
                                 key={role}
                                 variant={user.role === role ? "default" : "outline"}
@@ -524,8 +524,8 @@ export const requestedAccountColumns: ColumnDef<UserInfoType>[] = [
         cell: ({ row }) => {
             return (
                 <div className="flex items-center gap-3">
-                    <ApproveAccountRequest studentId={row?.original.studentId} />
-                    <DenyAccountRequest studentId={row?.original.studentId} />
+                    <ApproveAccountRequest userId={row?.original.id} />
+                    <DenyAccountRequest userId={row?.original.id} />
                 </div>
             )
         },
@@ -821,7 +821,7 @@ export const purchaseRequestColumns: ColumnDef<PurchaseRequestInterface>[] = [
             const colors: Record<string, string> = {
                 PENDING: "bg-blue-50 text-blue-700",
                 APPROVED: "bg-green-50 text-green-700",
-                DENIED: "bg-red-50 text-red-700",
+                REJECTED: "bg-red-50 text-red-700",
             };
             return (
                 <Badge variant="outline" className={colors[status] || "bg-gray-50"}>
@@ -895,7 +895,7 @@ export const PurchaseRequestActions = ({ row }: { row: any }) => {
                         variant="outline"
                         size="sm"
                         className="text-red-600 hover:text-red-700 border-red-200"
-                        onClick={() => updateStatusMutation.mutate('DENIED')}
+                        onClick={() => updateStatusMutation.mutate('REJECTED')}
                         disabled={updateStatusMutation.isPending}
                     >
                         Deny
@@ -989,7 +989,7 @@ export const borrowedBooksColumns: ColumnDef<AllBorrowedBooksTableInterface>[] =
         cell: ({ row }) => {
             return (
                 <div>
-                    <span>{format(new Date(row?.original?.borrowedOn), 'dd/MM/yyyy')}</span>
+                    <span>{row?.original?.borrowedOn ? format(new Date(row.original.borrowedOn), 'dd/MM/yyyy') : "N/A"}</span>
                 </div>
             )
         },
@@ -1000,7 +1000,7 @@ export const borrowedBooksColumns: ColumnDef<AllBorrowedBooksTableInterface>[] =
         cell: ({ row }) => {
             return (
                 <div>
-                    <span>{format(new Date(row?.original?.dueDate), 'dd/MM/yyyy')}</span>
+                    <span>{row?.original?.dueDate ? format(new Date(row.original.dueDate), 'dd/MM/yyyy') : "N/A"}</span>
                 </div>
             )
         },
@@ -1011,7 +1011,7 @@ export const borrowedBooksColumns: ColumnDef<AllBorrowedBooksTableInterface>[] =
         cell: ({ row }) => {
             return (
                 <div>
-                    <span>{row?.original?.returnedOn ? format(new Date(row?.original?.returnedOn), 'dd/MM/yyyy') : "N/A"}</span>
+                    <span>{row?.original?.returnedOn ? format(new Date(row.original.returnedOn), 'dd/MM/yyyy') : "N/A"}</span>
                 </div>
             )
         },

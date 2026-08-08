@@ -88,7 +88,7 @@ const HomePage = () => {
     const { data: recentBooksData } = useQuery({
         queryKey: ['all-books', 0, ''],
         queryFn: async () => {
-            const { data } = await api.get(`/api/books/getAllBooks?pageNumber=0&searchQuery=`, {
+            const { data } = await api.get(`/api/admin/getAllBooks?pageNumber=0&searchQuery=`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             return data.books;

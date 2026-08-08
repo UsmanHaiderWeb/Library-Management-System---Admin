@@ -11,26 +11,28 @@ import {
 } from "./ui/dialog";
 import { RefreshCcw } from "lucide-react";
 import { approveStudentAccount } from "@/lib/AxiosCalls";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface ApproveAccountRequestProps {
-    studentId: string,
+    userId: string,
     onConfirm?: () => void;
 }
 
 function ApproveAccountRequest({
     onConfirm,
-    studentId,
+    userId,
 }: ApproveAccountRequestProps) {
+    const queryClient = useQueryClient();
     const { mutate: approveAccount, isPending } = useMutation({
         mutationFn: async () => {
             const token = localStorage.getItem("adminToken") || '';
             if (!token) throw new Error("No authentication token found");
-            return approveStudentAccount(studentId);
+            return approveStudentAccount(userId);
         },
         onSuccess: () => {
             toast.success("Student account request approved successfully");
+            queryClient.invalidateQueries({ queryKey: ['all-account-requests'] });
             onConfirm?.();
         },
         onError: (error) => {
@@ -59,7 +61,7 @@ function ApproveAccountRequest({
                         </svg>
                     </div>
                     <DialogTitle className="text-center text-xl font-semibold">
-                        Approve Book Request
+                        Approve Account Request
                     </DialogTitle>
                     <DialogDescription className="text-center text-gray-600">
                         Approving this request will grant access and send a confirmation email to the student.

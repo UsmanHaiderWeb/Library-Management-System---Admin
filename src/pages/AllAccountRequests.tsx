@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
  
 import { memo, useEffect, useRef, useState } from "react"
-import { userColumn } from "./Table/columns"
+import { requestedAccountColumns } from "./Table/columns"
 import { DataTable } from "./Table/data-table"
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/AxiosCalls";
@@ -54,7 +54,7 @@ function AllAccountRequests() {
         <div className="px-7 w-full pb-10">
             <DataTable
                 data={data?.users || []}
-                columns={userColumn}
+                columns={requestedAccountColumns}
                 pageNumber={pageNumber}
                 setPageNumber={setPageNumber}
                 totalPages={data?.totalPages || 1}

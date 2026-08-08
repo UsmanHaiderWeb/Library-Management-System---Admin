@@ -2,16 +2,28 @@ import React from 'react';
 import { LogOut, Menu } from 'lucide-react';
 import { Button } from './ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { getAdminDetails } from '@/lib/AxiosCalls';
 
 interface HeaderProps {
-    name?: string;
-    email?: string;
     avatarUrl?: string;
     onMenuToggle?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ name = 'Adrian Hajdin', email = 'adrian@jsmastery.pro', avatarUrl = '/dummyUserImage.png', onMenuToggle }) => {
+const Header: React.FC<HeaderProps> = ({ avatarUrl = '/dummyUserImage.png', onMenuToggle }) => {
     const navigate = useNavigate();
+    const token = localStorage.getItem('adminToken') || '';
+
+    const { data } = useQuery<{ admin: { name: string; email: string } }>({
+        queryKey: ['admin-details'],
+        queryFn: getAdminDetails,
+        enabled: !!token,
+        staleTime: 1000 * 60 * 30,
+        refetchOnWindowFocus: false,
+    });
+
+    const name = data?.admin?.name || 'Admin';
+    const email = data?.admin?.email || '';
 
     const handleLogout = () => {
         localStorage.removeItem('adminToken');
