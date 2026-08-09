@@ -51,13 +51,14 @@ const SingleUserDetails = () => {
     }
 
     const userInfo = {
+        id: data.user.id,
         studentId: data.user.studentId,
         name: data.user.name,
         email: data.user.email,
         class: '',
         phoneNumber: data.user.phoneNumber || '',
         role: data.user.role,
-        fineBalance: 0,
+        fineBalance: data.user.fineBalance ?? 0,
     };
 
     const currentlyBorrowed = data.borrowedBooks.filter((b) => b.status === 'borrowed');

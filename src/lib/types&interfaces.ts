@@ -1,6 +1,7 @@
 export type BookCoverVariant = "extraSmall" | "small" | "medium" | "regular" | "wide";
 
 export interface UserInfoType {
+    id: string;
     name: string;
     email: string;
     class: string;
