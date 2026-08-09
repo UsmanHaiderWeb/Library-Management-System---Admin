@@ -48,7 +48,7 @@ const BookCover = ({
                     lqip={{ active: true }}
                 /> */}
                 <img
-                    src={coverImage || '/demoBook.png'}
+                    src={coverImage || '/demoBook.webp'}
                     alt="Book cover"
                     className="rounded-r-sm object-fill"
                     loading="lazy"

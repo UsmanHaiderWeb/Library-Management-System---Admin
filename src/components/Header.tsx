@@ -10,7 +10,7 @@ interface HeaderProps {
     onMenuToggle?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ avatarUrl = '/dummyUserImage.png', onMenuToggle }) => {
+const Header: React.FC<HeaderProps> = ({ avatarUrl = '/dummyUserImage.webp', onMenuToggle }) => {
     const navigate = useNavigate();
     const token = localStorage.getItem('adminToken') || '';
 

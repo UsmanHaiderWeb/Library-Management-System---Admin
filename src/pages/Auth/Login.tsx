@@ -145,7 +145,7 @@ const Login = () => {
                 </div>
             </div>
             <div className='w-full h-full overflow-hidden hidden lg:block'>
-                <img src="/AuthSideBg.png" alt="AuthSideBg" className='w-full h-full object-cover object-center' />
+                <img src="/AuthSideBg.webp" alt="AuthSideBg" className='w-full h-full object-cover object-center' />
             </div>
         </div>
     )

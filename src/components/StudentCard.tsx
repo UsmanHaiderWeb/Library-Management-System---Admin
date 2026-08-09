@@ -53,7 +53,7 @@ const StudentCard = ({ userInfo }: { userInfo: UserInfoType }) => {
                 </svg>
             </div>
             <div className='w-full h-full absolute z-[3] top-0 left-0 overflow-hidden rounded-lg opacity-40'>
-                <img src="/noise.png" alt="noise" className="w-full h-full" />
+                <img src="/noise.webp" alt="noise" className="w-full h-full" />
             </div>
 
             <div className="w-full rounded-2xl shadow-2xl text-white relative z-[4] overflow-hidden py-3">
@@ -71,7 +71,7 @@ const StudentCard = ({ userInfo }: { userInfo: UserInfoType }) => {
 
                 <div className="flex px-5">
                     <div className="w-max h-max p-1 bg-[#F3F3F3]/20 rounded-lg">
-                        <img src="/dummyUserImage.png" alt="Profile" className="w-24 h-24 rounded-lg object-cover" />
+                        <img src="/dummyUserImage.webp" alt="Profile" className="w-24 h-24 rounded-lg object-cover" />
                     </div>
 
                     <div className="flex-1 pl-6 flex flex-col justify-between">
