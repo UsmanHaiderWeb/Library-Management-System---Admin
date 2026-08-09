@@ -14,6 +14,8 @@ import {
 } from "@imagekit/react";
 import { toast } from 'sonner';
 import { useNavigate, useParams } from 'react-router-dom';
+import { Wand2, Loader2 } from 'lucide-react';
+import { useCoverColor } from '@/hooks/useCoverColor';
 
 const bookSchema = z.object({
     bookNumber: z.string().min(1, 'Book number is required'),
@@ -86,7 +88,8 @@ const EditBookForm = () => {
         handleSubmit,
         formState: { errors },
         watch,
-        reset
+        reset,
+        setValue
     } = useForm<BookForm>({
         resolver: zodResolver(bookSchema),
         defaultValues: {
@@ -95,6 +98,9 @@ const EditBookForm = () => {
             isOnline: false,
         },
     });
+
+    const { isPickingColor, colorWasAutoPicked, pickColorFromCover } =
+        useCoverColor((hex) => setValue('bgColor', hex, { shouldValidate: true }));
 
     // Fetch book details
     const { data: bookData } = useQuery({
@@ -248,18 +254,49 @@ const EditBookForm = () => {
                     control={control}
                     render={({ field }) => (
                         <Input type="file" accept="image/*" disabled={mutation.isPending || isBookUpdating}
-                            onChange={(e: ChangeEvent<HTMLInputElement>) => field.onChange(e?.target?.files?.[0])}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                                const file = e?.target?.files?.[0];
+                                field.onChange(file);
+                                // Re-derive the spine colour when the cover is replaced
+                                pickColorFromCover(file);
+                            }}
                         />
                     )}
                 />
                 {errors.image && <p className='text-sm text-red-500'>{errors.image.message?.toString()}</p>}
             </div>
             <div className="mb-5">
-                <label className="block mb-1 font-medium">Book Primary Color</label>
+                <div className="mb-1 flex items-center gap-2">
+                    <label className="font-medium">Book Primary Color</label>
+                    {isPickingColor && (
+                        <span className="inline-flex items-center gap-1 text-xs text-gray-500">
+                            <Loader2 className="h-3 w-3 animate-spin" /> reading cover…
+                        </span>
+                    )}
+                    {!isPickingColor && colorWasAutoPicked && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+                            <Wand2 className="h-3 w-3" /> picked from cover
+                        </span>
+                    )}
+                </div>
                 <label htmlFor='color' className='flex items-center gap-3'>
                     <Input type="color" id='color' className="w-11 h-11 p-0 border-none bg-transparent" {...register('bgColor')} disabled={mutation.isPending || isBookUpdating} />
                     <Input value={watch('bgColor')} readOnly className='pointer-events-none' disabled={mutation.isPending || isBookUpdating} />
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="shrink-0 gap-1.5"
+                        onClick={() => pickColorFromCover(watch('image') || bookData?.image)}
+                        disabled={isPickingColor || mutation.isPending || isBookUpdating}
+                    >
+                        <Wand2 className="h-3.5 w-3.5" />
+                        Pick from cover
+                    </Button>
                 </label>
+                <p className="mt-1 text-xs text-gray-500">
+                    Derived from the cover image — adjust it here if you want something different.
+                </p>
                 {errors.bgColor && <p className='text-sm text-red-500'>{errors.bgColor.message}</p>}
             </div>
 
