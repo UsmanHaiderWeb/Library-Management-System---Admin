@@ -101,23 +101,26 @@ export async function extractCoverColor(source: File | string): Promise<string |
         const { data } = ctx.getImageData(0, 0, SAMPLE_SIZE, SAMPLE_SIZE);
 
         const buckets = new Map<string, { sum: Rgb; count: number; score: number }>();
+        let usable = 0;
+        const totalPixels = SAMPLE_SIZE * SAMPLE_SIZE;
 
         for (let i = 0; i < data.length; i += 4) {
             const r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
             if (a < 125) continue;
 
             const { s, l } = rgbToHsl({ r, g, b });
-            // Ignore paper-white, near-black and washed-out pixels: covers are
-            // full of white margins and dark text that are not the "colour".
-            if (l > 0.92 || l < 0.08) continue;
-            if (s < 0.12 && l > 0.75) continue;
+            // Covers are mostly paper and print. Cream sits around 0.88
+            // lightness and would otherwise win on sheer area alone.
+            if (l > 0.88 || l < 0.10) continue;
+            if (s < 0.10 && l > 0.65) continue;
 
+            usable++;
             const key = `${Math.round(r / QUANT_STEP)}-${Math.round(g / QUANT_STEP)}-${Math.round(b / QUANT_STEP)}`;
             const bucket = buckets.get(key) ?? { sum: { r: 0, g: 0, b: 0 }, count: 0, score: 0 };
             bucket.sum.r += r; bucket.sum.g += g; bucket.sum.b += b;
             bucket.count += 1;
-            // Favour colourful buckets so a large grey area doesn't always win
-            bucket.score += 1 + s * 1.8;
+            // Squaring saturation lets a small vivid area beat a large pale one
+            bucket.score += 0.25 + s * s * 3;
             buckets.set(key, bucket);
         }
 
@@ -129,6 +132,16 @@ export async function extractCoverColor(source: File | string): Promise<string |
             g: winner.sum.g / winner.count,
             b: winner.sum.b / winner.count,
         };
+
+        // If barely any of the cover was usable, or the winning tone is nearly
+        // grey, we don't really know the colour — return a neutral spine rather
+        // than inventing a confident-looking one.
+        const { s: winnerSaturation } = rgbToHsl(average);
+        const confident = winnerSaturation >= 0.15 && usable >= totalPixels * 0.05;
+        if (!confident) {
+            const { h, l } = rgbToHsl(average);
+            return toHex(hslToRgb(h, 0.05, Math.min(Math.max(l, 0.22), 0.42)));
+        }
 
         return toHex(toSpineTone(average));
     } catch {

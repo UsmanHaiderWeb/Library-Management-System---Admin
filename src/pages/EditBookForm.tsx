@@ -15,7 +15,7 @@ import {
 import { toast } from 'sonner';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Wand2, Loader2 } from 'lucide-react';
-import { useCoverColor } from '@/hooks/useCoverColor';
+import { useCoverColor, DEFAULT_COVER_COLOR } from '@/hooks/useCoverColor';
 
 const bookSchema = z.object({
     bookNumber: z.string().min(1, 'Book number is required'),
@@ -93,7 +93,7 @@ const EditBookForm = () => {
     } = useForm<BookForm>({
         resolver: zodResolver(bookSchema),
         defaultValues: {
-            bgColor: '#000000',
+            bgColor: DEFAULT_COVER_COLOR,
             totalBooks: "",
             isOnline: false,
         },
@@ -266,37 +266,47 @@ const EditBookForm = () => {
                 {errors.image && <p className='text-sm text-red-500'>{errors.image.message?.toString()}</p>}
             </div>
             <div className="mb-5">
-                <div className="mb-1 flex items-center gap-2">
-                    <label className="font-medium">Book Primary Color</label>
-                    {isPickingColor && (
-                        <span className="inline-flex items-center gap-1 text-xs text-gray-500">
-                            <Loader2 className="h-3 w-3 animate-spin" /> reading cover…
-                        </span>
-                    )}
-                    {!isPickingColor && colorWasAutoPicked && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
-                            <Wand2 className="h-3 w-3" /> picked from cover
-                        </span>
+                <label className="block mb-1 font-medium">Book Primary Color</label>
+                <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50/60 px-3 py-2.5">
+                    <label htmlFor="color" className="shrink-0 cursor-pointer" title="Click to change">
+                        <Input
+                            type="color"
+                            id="color"
+                            className="h-9 w-9 cursor-pointer p-0 border-none bg-transparent"
+                            {...register('bgColor')}
+                            disabled={mutation.isPending || isBookUpdating}
+                        />
+                    </label>
+
+                    <div className="min-w-0 flex-1">
+                        {isPickingColor ? (
+                            <span className="inline-flex items-center gap-1.5 text-sm text-gray-500">
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Reading colour from cover…
+                            </span>
+                        ) : (
+                            <>
+                                <span className="font-mono text-sm uppercase text-gray-700">{watch('bgColor')}</span>
+                                <span className="ml-2 text-xs text-gray-500">
+                                    {colorWasAutoPicked ? 'from cover' : 'click the swatch to change'}
+                                </span>
+                            </>
+                        )}
+                    </div>
+
+                    {!isPickingColor && (
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="shrink-0 gap-1.5 text-gray-600"
+                            onClick={() => pickColorFromCover(watch('image') || bookData?.image)}
+                            disabled={mutation.isPending || isBookUpdating}
+                        >
+                            <Wand2 className="h-3.5 w-3.5" />
+                            Pick from cover
+                        </Button>
                     )}
                 </div>
-                <label htmlFor='color' className='flex items-center gap-3'>
-                    <Input type="color" id='color' className="w-11 h-11 p-0 border-none bg-transparent" {...register('bgColor')} disabled={mutation.isPending || isBookUpdating} />
-                    <Input value={watch('bgColor')} readOnly className='pointer-events-none' disabled={mutation.isPending || isBookUpdating} />
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="shrink-0 gap-1.5"
-                        onClick={() => pickColorFromCover(watch('image') || bookData?.image)}
-                        disabled={isPickingColor || mutation.isPending || isBookUpdating}
-                    >
-                        <Wand2 className="h-3.5 w-3.5" />
-                        Pick from cover
-                    </Button>
-                </label>
-                <p className="mt-1 text-xs text-gray-500">
-                    Derived from the cover image — adjust it here if you want something different.
-                </p>
                 {errors.bgColor && <p className='text-sm text-red-500'>{errors.bgColor.message}</p>}
             </div>
 
