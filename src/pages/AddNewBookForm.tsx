@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import BookCover from '@/components/BookCover';
 import { api } from '@/lib/AxiosCalls';
 import { Checkbox } from '@/components/ui/checkbox';
+import RichTextEditor from '@/components/RichTextEditor';
 import {
     ImageKitAbortError,
     ImageKitInvalidRequestError,
@@ -351,11 +352,17 @@ const AddNewBookForm = () => {
 
             <div className="mb-5">
                 <label className="block mb-1 font-medium">Book Summary</label>
-                <textarea
-                    className="w-full min-h-[120px] border border-black/40 rounded-md p-2 text-sm"
-                    placeholder="Write a brief summary of the book"
-                    {...register('summary')}
-                    disabled={mutation.isPending || isBookCreating}
+                <Controller
+                    name='summary'
+                    control={control}
+                    render={({ field }) => (
+                        <RichTextEditor
+                            value={field.value || ''}
+                            onChange={field.onChange}
+                            placeholder="Write a brief summary of the book"
+                            disabled={mutation.isPending || isBookCreating}
+                        />
+                    )}
                 />
                 {errors.summary && (
                     <p className='text-sm text-red-500'>{errors.summary.message}</p>
