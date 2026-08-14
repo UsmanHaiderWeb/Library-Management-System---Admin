@@ -1,10 +1,9 @@
+import { FEATURES } from '@/lib/features';
 import { lazy, StrictMode, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import './index.css'
-import Test from './components/Test'
-import Test2 from './components/Test2'
 import IsAuthenticated from './components/IsAuthenticated.tsx'
 const App = lazy(() => import('./App.tsx'));
 const HomePage = lazy(() => import('./pages/HomePage.tsx'));
@@ -60,10 +59,12 @@ const router = createBrowserRouter([
                 path: '/borrow-requests',
                 element: <AllBorrowRequests />,
             },
-            {
+            // Purchase requests are switched off for now; the page is kept so
+            // flipping FEATURES.purchaseRequests brings it straight back.
+            ...(FEATURES.purchaseRequests ? [{
                 path: '/purchase-requests',
                 element: <AllPurchaseRequests />,
-            },
+            }] : []),
             {
                 path: '/bulk-import',
                 element: <BulkImport />,
@@ -111,14 +112,6 @@ const router = createBrowserRouter([
     {
         path: '/login',
         element: <Login />,
-    },
-    {
-        path: '/test',
-        element: <Test />,
-    },
-    {
-        path: '/test2',
-        element: <Test2 />,
     },
 ])
 

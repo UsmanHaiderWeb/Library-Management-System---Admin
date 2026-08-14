@@ -1,13 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, ArrowUpRightFromSquare, Loader2, TrendingUp } from 'lucide-react';
+import { Plus, ArrowUpRightFromSquare, Loader2, TrendingUp, Users, Clock, RefreshCw, ReceiptText } from 'lucide-react';
 import BookCover from '@/components/BookCover';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/AxiosCalls';
 import { createChart, ColorType, LineSeries } from 'lightweight-charts';
 import { useEffect, useRef, memo } from 'react';
+
+const quickActions = [
+    { to: '/account-requests', label: 'Account Requests', Icon: Users, iconBg: 'bg-blue-50', iconClass: 'text-blue-600' },
+    { to: '/overdue', label: 'Overdue Books', Icon: Clock, iconBg: 'bg-amber-50', iconClass: 'text-amber-600' },
+    { to: '/renewal-requests', label: 'Renewals', Icon: RefreshCw, iconBg: 'bg-emerald-50', iconClass: 'text-emerald-600' },
+    { to: '/fines', label: 'Fines', Icon: ReceiptText, iconBg: 'bg-rose-50', iconClass: 'text-rose-600' },
+];
 
 const BorrowingChart = () => {
     const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -236,20 +243,24 @@ const HomePage = () => {
                         </CardContent>
                     </Card>
 
-                    {/* Quick Links / Account Requests */}
-                    <Card className="bg-gray-900 border-gray-800">
+                    {/* Quick Links */}
+                    <Card>
                         <CardHeader>
-                            <CardTitle className="text-white text-lg">Quick Actions</CardTitle>
+                            <CardTitle className="text-gray-800 text-lg">Quick Actions</CardTitle>
                         </CardHeader>
                         <CardContent className="grid grid-cols-2 gap-3">
-                            <Link to="/account-requests" className="flex flex-col items-center justify-center p-4 bg-gray-800 rounded-xl hover:bg-gray-700 transition-colors gap-2 text-center text-xs text-gray-300 font-medium">
-                                <div className="bg-blue-500/20 p-2 rounded-lg"><Users className="w-5 h-5 text-blue-400" /></div>
-                                Account Requests
-                            </Link>
-                            <Link to="/purchase-requests" className="flex flex-col items-center justify-center p-4 bg-gray-800 rounded-xl hover:bg-gray-700 transition-colors gap-2 text-center text-xs text-gray-300 font-medium">
-                                <div className="bg-purple-500/20 p-2 rounded-lg"><ShoppingCart className="w-5 h-5 text-purple-400" /></div>
-                                Purchase Requests
-                            </Link>
+                            {quickActions.map(({ to, label, Icon, iconClass, iconBg }) => (
+                                <Link
+                                    key={to}
+                                    to={to}
+                                    className="flex flex-col items-center justify-center gap-2 rounded-xl border border-gray-100 bg-gray-50/50 p-4 text-center text-xs font-medium text-gray-600 shadow-sm transition-all hover:border-gray-200 hover:bg-white hover:text-gray-900"
+                                >
+                                    <div className={`rounded-lg p-2 ${iconBg}`}>
+                                        <Icon className={`h-5 w-5 ${iconClass}`} />
+                                    </div>
+                                    {label}
+                                </Link>
+                            ))}
                         </CardContent>
                     </Card>
                 </div>
@@ -257,8 +268,5 @@ const HomePage = () => {
         </div>
     );
 };
-
-// Explicitly importing ShoppingCart since it's used in the JSX
-import { ShoppingCart, Users } from 'lucide-react';
 
 export default memo(HomePage);
