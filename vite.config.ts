@@ -12,35 +12,33 @@ export default defineConfig({
             "@": path.resolve(__dirname, "./src"),
         },
     },
+    // Pinned so the two portals can never swap ports. A browser tab holding a
+    // cached index.html from the other app would request chunk hashes this
+    // server does not have, giving a blank page with only 404s in the network
+    // tab and nothing in the console.
+    server: { port: 5173, strictPort: true },
+    preview: { port: 4173, strictPort: true },
     build: {
+        /**
+         * The entry chunk is large because it is almost entirely third-party
+         * (react-dom, react-router, zod, react-day-picker...). Our own source is
+         * a small fraction of it and is already route-split via React.lazy.
+         *
+         * Do NOT hand-roll manualChunks here. Grouping packages by substring
+         * previously put '@tiptap/react' in the React chunk (it matches
+         * '/react/'), which created a circular import between chunks — the app
+         * rendered a blank page with no console error. Rollup's default
+         * chunking follows the real module graph and cannot cycle.
+         *
+         * lightweight-charts is the one safe exception: it is a leaf with no
+         * imports of its own, so it can never take part in a cycle, and only
+         * the dashboard needs it.
+         */
+        chunkSizeWarningLimit: 700,
         rollupOptions: {
             output: {
-                /**
-                 * Split vendor code out of the entry chunk.
-                 *
-                 * Nearly all of the weight here is third-party, and it changes
-                 * far less often than our own code — separate chunks mean a
-                 * routine app deploy doesn't invalidate the browser's cached
-                 * copy of React, and the browser fetches them in parallel.
-                 */
-                manualChunks(id) {
-                    if (!id.includes('node_modules')) return;
-
-                    if (id.includes('react-dom') || id.includes('/react/') || id.includes('scheduler')) {
-                        return 'vendor-react';
-                    }
-                    if (id.includes('react-router')) return 'vendor-router';
-                    // Only the table pages need these
-                    if (id.includes('@tanstack/table-core') || id.includes('react-table')) return 'vendor-table';
-                    if (id.includes('lightweight-charts') || id.includes('fancy-canvas')) return 'vendor-charts';
-                    if (id.includes('react-day-picker') || id.includes('date-fns')) return 'vendor-dates';
-                    if (id.includes('@radix-ui') || id.includes('@floating-ui')) return 'vendor-radix';
-                    if (id.includes('zod') || id.includes('react-hook-form') || id.includes('@hookform')) {
-                        return 'vendor-forms';
-                    }
-                    if (id.includes('@tiptap') || id.includes('prosemirror')) return 'vendor-editor';
-
-                    return 'vendor';
+                manualChunks: {
+                    'vendor-charts': ['lightweight-charts'],
                 },
             },
         },
