@@ -375,7 +375,7 @@ const AddNewBookForm = () => {
                                 onCheckedChange={field.onChange}
                                 disabled={mutation.isPending || isBookCreating}
                             />
-                            <span className="text-sm">If PDF is book for this book, please check the box</span>
+                            <span className="text-sm">This book also has a digital (PDF) copy students can read online</span>
                         </div>
                     </div>
 
