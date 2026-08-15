@@ -45,6 +45,14 @@ const ToolbarButton = ({
     </button>
 );
 
+/** Everything off — what the toolbar shows when there is no live editor. */
+const IDLE_TOOLBAR_STATE = {
+    bold: false, italic: false, strike: false,
+    h2: false, h3: false,
+    bullet: false, ordered: false, quote: false,
+    canUndo: false, canRedo: false,
+};
+
 const Toolbar = ({ editor, disabled }: { editor: Editor; disabled?: boolean }) => {
     /**
      * Tiptap v3 no longer re-renders the component on every transaction, so
@@ -54,7 +62,11 @@ const Toolbar = ({ editor, disabled }: { editor: Editor; disabled?: boolean }) =
      */
     const state = useEditorState({
         editor,
-        selector: ({ editor }) => ({
+        // The selector can be re-run against a torn-down editor while React is
+        // remounting the tree (StrictMode does this on every dev mount). A
+        // destroyed editor has no state, so isActive/can() throw — fall back to
+        // "nothing active" instead of crashing the page.
+        selector: ({ editor }) => (!editor || editor.isDestroyed ? IDLE_TOOLBAR_STATE : {
             bold: editor.isActive('bold'),
             italic: editor.isActive('italic'),
             strike: editor.isActive('strike'),
@@ -66,7 +78,7 @@ const Toolbar = ({ editor, disabled }: { editor: Editor; disabled?: boolean }) =
             canUndo: editor.can().undo(),
             canRedo: editor.can().redo(),
         }),
-    });
+    }) ?? IDLE_TOOLBAR_STATE;
 
     return (
         <div className="flex flex-wrap items-center gap-0.5 border-b border-gray-200 bg-gray-50/70 px-2 py-1.5">
@@ -153,9 +165,13 @@ const RichTextEditor = ({ value, onChange, placeholder, disabled }: RichTextEdit
         },
     });
 
-    // Reflect programmatic changes (e.g. an edit form loading its book)
+    // Reflect programmatic changes (e.g. an edit form loading its book).
+    // The isDestroyed guard is not optional: React re-runs effects on a
+    // remount (StrictMode does this on every mount in development), and a
+    // torn-down editor has no schema left, so getHTML() throws and takes the
+    // whole page down with it.
     useEffect(() => {
-        if (!editor) return;
+        if (!editor || editor.isDestroyed) return;
         const incoming = value || '';
         if (incoming !== editor.getHTML() && !editor.isFocused) {
             editor.commands.setContent(incoming, { emitUpdate: false });
@@ -163,7 +179,8 @@ const RichTextEditor = ({ value, onChange, placeholder, disabled }: RichTextEdit
     }, [value, editor]);
 
     useEffect(() => {
-        editor?.setEditable(!disabled);
+        if (!editor || editor.isDestroyed) return;
+        editor.setEditable(!disabled);
     }, [disabled, editor]);
 
     if (!editor) return null;

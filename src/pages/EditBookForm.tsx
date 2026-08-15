@@ -117,6 +117,9 @@ const EditBookForm = () => {
         if (bookData) {
             reset({
                 bookNumber: bookData.bookNumber,
+                // Must be loaded: the form posts every field back, so an ISBN
+                // left out here comes back empty and wipes the stored one.
+                isbn: bookData.isbn ?? '',
                 bookName: bookData.bookName,
                 summary: bookData.summary,
                 author: bookData.author,
