@@ -1,7 +1,14 @@
 import axios from "axios";
 
+/**
+ * Empty by default, so calls go to the origin serving this app and the
+ * reverse proxy in front of it forwards /api to the backend. That keeps the
+ * portal same-origin (no CORS) and means a new college install needs no
+ * source edit — only VITE_API_BASE_URL if the API really does live elsewhere.
+ * In development, Vite's proxy plays the part of the reverse proxy.
+ */
 export const api = axios.create({
-    baseURL: "http://localhost:3000"
+    baseURL: import.meta.env.VITE_API_BASE_URL ?? "",
 });
 
 // Request interceptor: auto-attach admin token

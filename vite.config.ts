@@ -16,8 +16,25 @@ export default defineConfig({
     // cached index.html from the other app would request chunk hashes this
     // server does not have, giving a blank page with only 404s in the network
     // tab and nothing in the console.
-    server: { port: 5173, strictPort: true },
-    preview: { port: 4173, strictPort: true },
+    // The portal calls /api relatively so it is same-origin in production
+    // behind Caddy; in development these proxies stand in for that reverse
+    // proxy. `vite preview` does not read server.proxy, hence the repeat.
+    server: {
+        port: 5173,
+        strictPort: true,
+        proxy: {
+            '/api': { target: 'http://localhost:3000', changeOrigin: true, secure: false },
+            '/templates': { target: 'http://localhost:3000', changeOrigin: true, secure: false },
+        },
+    },
+    preview: {
+        port: 4173,
+        strictPort: true,
+        proxy: {
+            '/api': { target: 'http://localhost:3000', changeOrigin: true, secure: false },
+            '/templates': { target: 'http://localhost:3000', changeOrigin: true, secure: false },
+        },
+    },
     build: {
         /**
          * The entry chunk is large because it is almost entirely third-party

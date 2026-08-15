@@ -46,7 +46,9 @@ const BulkImport = () => {
     };
 
     const downloadTemplate = (type: 'books' | 'users') => {
-        const url = `http://localhost:3000/templates/${type}_template.csv`;
+        // Relative: the backend owns these files, and the proxy in front of
+        // the portal forwards /templates to it (see vite.config.ts / Caddyfile)
+        const url = `/templates/${type}_template.csv`;
         const link = document.createElement('a');
         link.href = url;
         link.download = `${type}_template.csv`;

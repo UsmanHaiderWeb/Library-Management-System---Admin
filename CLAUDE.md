@@ -4,7 +4,7 @@ React 19 + Vite + Tailwind 4 + Radix, TanStack Query for all server state. Libra
 
 ## API layer (the one place that matters)
 
-`src/lib/AxiosCalls.ts` exports the `api` axios instance (baseURL `http://localhost:3000` — **update per deployment**) plus named helpers for every endpoint. Interceptors: auto-attach `Bearer` from `localStorage.adminToken`; auto-logout + redirect `/login` on 401. Keep every new call in this file or on this instance — no raw axios in components.
+`src/lib/AxiosCalls.ts` exports the `api` axios instance plus named helpers for every endpoint. **The baseURL is empty**: calls go to the origin serving the portal and the proxy in front forwards `/api` (and `/templates`) to the backend — Vite's `server.proxy` in development, Caddy in production. So the portal is always same-origin with its API, CORS never applies to it, and a new install needs no source edit. `VITE_API_BASE_URL` overrides this only if the API genuinely lives on another origin. Interceptors: auto-attach `Bearer` from `localStorage.adminToken`; auto-logout + redirect `/login` on 401. Keep every new call in this file or on this instance — no raw axios in components.
 
 Auth token key is **`adminToken`** (the Student portal uses `token` — do not mix them up; this exact confusion caused past bugs).
 
