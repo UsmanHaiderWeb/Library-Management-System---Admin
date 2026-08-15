@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useEditor, useEditorState, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import { EDITOR_CONTENT_CLASS } from '@/lib/richTextClasses';
 import {
     Bold, Italic, Strikethrough, List, ListOrdered,
     Heading2, Heading3, Quote, Undo2, Redo2,
@@ -123,29 +124,12 @@ const Toolbar = ({ editor, disabled }: { editor: Editor; disabled?: boolean }) =
 };
 
 /**
- * Styles for the editable document.
- *
- * These are spelled out rather than using `prose`, because the typography
- * plugin is not installed — `prose` was a no-op. Tailwind's preflight resets
- * headings to inherit and strips list markers, so headings, lists and quotes
- * were being applied to the document but rendered identical to plain text,
- * which looked exactly like the buttons doing nothing.
- *
- * Keep in step with the student portal's RichText component, which renders the
- * saved HTML.
+ * The editable document is styled from the shared metrics so it matches what
+ * the student portal renders. Spelling them out is necessary because
+ * @tailwindcss/typography is not installed — `prose` was a no-op, and
+ * preflight resets headings to inherit and strips list markers, which is why
+ * headings and lists previously looked like they did nothing.
  */
-const CONTENT_CLASS = [
-    'min-h-[160px] px-3 py-2 focus:outline-none text-sm text-gray-800',
-    '[&_p]:mb-2 [&_p:last-child]:mb-0',
-    '[&_h2]:text-xl [&_h2]:font-semibold [&_h2]:mt-3 [&_h2]:mb-1.5',
-    '[&_h3]:text-lg [&_h3]:font-semibold [&_h3]:mt-2.5 [&_h3]:mb-1',
-    '[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-2',
-    '[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-2',
-    '[&_li]:mb-0.5 [&_li>p]:mb-0',
-    '[&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-4',
-    '[&_blockquote]:italic [&_blockquote]:text-gray-600 [&_blockquote]:my-2',
-    '[&_strong]:font-semibold',
-].join(' ');
 
 const RichTextEditor = ({ value, onChange, placeholder, disabled }: RichTextEditorProps) => {
     const editor = useEditor({
@@ -165,7 +149,7 @@ const RichTextEditor = ({ value, onChange, placeholder, disabled }: RichTextEdit
             onChange(isEmptyHtml(html) ? '' : html);
         },
         editorProps: {
-            attributes: { class: CONTENT_CLASS },
+            attributes: { class: EDITOR_CONTENT_CLASS },
         },
     });
 
@@ -189,12 +173,18 @@ const RichTextEditor = ({ value, onChange, placeholder, disabled }: RichTextEdit
             <Toolbar editor={editor} disabled={disabled} />
             <div className="relative bg-white">
                 {isEmptyHtml(value) && (
-                    <span className="pointer-events-none absolute left-3 top-2 text-sm text-gray-400">
+                    // Positioned to sit exactly where the first line will land
+                    <span className="pointer-events-none absolute left-4 top-3 text-base text-gray-400">
                         {placeholder}
                     </span>
                 )}
                 <EditorContent editor={editor} />
             </div>
+            <p className="border-t border-gray-200 bg-gray-50/70 px-3 py-1.5 text-[11px] text-gray-500">
+                Enter starts a new paragraph, Shift+Enter breaks the line. Headings, lists
+                and quotes apply to the whole paragraph; bold, italic and strikethrough
+                apply to the selected text.
+            </p>
         </div>
     );
 };
