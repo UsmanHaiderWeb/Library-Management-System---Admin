@@ -115,7 +115,19 @@ const router = createBrowserRouter([
     },
 ])
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            // Refetching every time the tab regains focus caused a burst of
+            // requests just for alt-tabbing. Data here is not volatile enough
+            // to need it; pages that mutate invalidate their own queries.
+            refetchOnWindowFocus: false,
+            refetchOnReconnect: false,
+            staleTime: 1000 * 60 * 5,
+            retry: 1,
+        },
+    },
+})
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>

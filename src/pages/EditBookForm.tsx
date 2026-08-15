@@ -141,7 +141,7 @@ const EditBookForm = () => {
         onSuccess: () => {
             setIsBookUpdating(false);
             toast.success("Book updated successfully");
-            navigate('/all-books');
+            navigate('/books');
         },
     });
 
