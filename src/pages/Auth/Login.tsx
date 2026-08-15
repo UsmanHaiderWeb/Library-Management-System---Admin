@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation } from '@tanstack/react-query'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -18,6 +18,20 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>
 
+
+/** Reads the college code this portal is installed for. */
+const resolveCollegeCode = (): string => {
+    const fromEnv = import.meta.env.VITE_COLLEGE_CODE;
+    if (fromEnv) return String(fromEnv);
+
+    const host = window.location.hostname;
+    // Only treat it as a tenant subdomain when there actually is one
+    const parts = host.split('.');
+    if (parts.length > 2 && parts[0] !== 'www') return parts[0];
+
+    return '';
+};
+
 const Login = () => {
     const navigate = useNavigate()
 
@@ -28,7 +42,12 @@ const Login = () => {
         setError
     } = useForm<LoginFormData>({
         defaultValues: {
-            collegeCode: window?.origin?.split("https://")?.[1]?.split(".")?.[0] || 'GICCL',
+            // Per-install college code. VITE_COLLEGE_CODE is the supported way to
+            // set it (same as the student portal); the subdomain is a fallback for
+            // deployments that host each college at <code>.example.edu. The old
+            // hardcoded 'GICCL' default meant any other college silently
+            // authenticated against the wrong tenant.
+            collegeCode: resolveCollegeCode(),
             email: '',
             password: '',
         },
@@ -56,24 +75,24 @@ const Login = () => {
     }
 
     return (
-        <div className='h-screen max-h-[750px] items-center grid lg:grid-cols-2 grid-cols-1 bg-[#0A0A0F] text-white'>
+        <div className='h-screen max-h-[750px] items-center grid lg:grid-cols-2 grid-cols-1 bg-background text-foreground'>
             <title>Login - GICCL | Library</title>
             <div className='w-full h-full flex items-center justify-center'>
                 <div className='formBg w-[94vw] max-w-lg sm:w-lg lg:max-w-[45vw] space-y-6 py-8 sm:py-10 px-7 sm:px-10 rounded-lg'>
                     <div>
-                        <div className='flex items-center gap-2 mb-8'>
+                        <div className='flex items-center gap-2 mb-8 text-foreground'>
                             <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M2 17L12 22L22 17" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M2 12L12 17L22 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
-                            <span className='text-2xl font-semibold'>GICCL - Library</span>
+                            <span className='text-2xl font-semibold tracking-tight'>GICCL - Library</span>
                         </div>
                         <div>
-                            <h2 className='text-2xl font-semibold'>
+                            <h2 className='text-2xl font-bold text-foreground'>
                                 Welcome Back to the GICCL - Library
                             </h2>
-                            <p className='text-gray-400 text-sm'>
+                            <p className='text-muted-foreground text-sm font-medium'>
                                 Manage the vast collection of resources, and stay organized
                             </p>
                         </div>
@@ -81,45 +100,45 @@ const Login = () => {
                     <form className='space-y-6' onSubmit={handleSubmit(onSubmit)}>
                         <div className='space-y-4'>
                             <div className='space-y-2'>
-                                <Label htmlFor='email' className='block text-sm font-medium opacity-70'>
+                                <Label htmlFor='email' className='block text-sm font-semibold text-foreground/80'>
                                     Email
                                 </Label>
                                 <Input
                                     {...register('email')}
                                     id='email'
                                     type='email'
-                                    className='w-full h-11 px-3 py-2 bg-[#1C1C24] border border-gray-800 rounded-[6px] text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                    className='w-full h-11 px-3 py-2 bg-card/50 border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:ring-primary/20 transition-all duration-200 shadow-sm'
                                     placeholder='adrian@jsmastery.pro'
                                 />
                                 {errors.email && (
-                                    <p className='text-sm text-red-500'>{errors.email.message}</p>
+                                    <p className='text-xs font-medium text-destructive'>{errors.email.message}</p>
                                 )}
                             </div>
                             <div className='space-y-2'>
-                                <Label htmlFor='password' className='block text-sm font-medium opacity-70'>
+                                <Label htmlFor='password' className='block text-sm font-semibold text-foreground/80'>
                                     Password
                                 </Label>
                                 <Input
                                     {...register('password')}
                                     id='password'
                                     type='password'
-                                    className='w-full h-11 px-3 py-2 bg-[#1C1C24] border border-gray-800 rounded-[6px] text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                    className='w-full h-11 px-3 py-2 bg-card/50 border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:ring-primary/20 transition-all duration-200 shadow-sm'
                                     placeholder='Enter your password'
                                 />
                                 {errors.password && (
-                                    <p className='text-sm text-red-500'>{errors.password?.message}</p>
+                                    <p className='text-xs font-medium text-destructive'>{errors.password?.message}</p>
                                 )}
                             </div>
                         </div>
 
                         <div>
                             {(!errors.email && !errors.password && errors.root) && (
-                                <p className='text-sm text-red-500 pb-0.5'>{errors.root?.message}</p>
+                                <p className='text-xs font-medium text-destructive pb-0.5'>{errors.root?.message}</p>
                             )}
                             <Button
                                 type='submit'
                                 disabled={loginMutation.isPending}
-                                className='w-full h-11 rounded-[6px]'
+                                className='w-full h-11 rounded-lg'
                             >
                                 {loginMutation.isPending ? (
                                     <span className='flex items-center justify-center'>
@@ -134,13 +153,6 @@ const Login = () => {
                                 )}
                             </Button>
                         </div>
-
-                        <p className='text-center text-sm text-gray-400'>
-                            Don't have an account?{' '}
-                            <Link to='/register' className='hover:underline text-gray-200'>
-                                Register here
-                            </Link>
-                        </p>
                     </form>
                 </div>
             </div>

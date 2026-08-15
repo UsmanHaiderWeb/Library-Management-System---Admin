@@ -113,6 +113,7 @@
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
     --font-poppins: "Poppins";
+    --form-bg: linear-gradient(180deg, #f8f9fc 0%, #eef1f6 100%);
 }
 
 @theme {
@@ -231,8 +232,9 @@
 }
 
 
+/* Matches the student portal's login panel so both look like one product. */
 .formBg {
-    background: linear-gradient(180deg, #12141D 0%, #12151F 100%);
+    background: var(--form-bg);
 }
 
 button,
