@@ -92,19 +92,21 @@ function AllBorrowRequests() {
     return (
         <div className="px-7 w-full pb-10">
             <title>Borrow Requests - GICCL | Library</title>
-            <DataTable
-                data={data?.requests || []}
-                columns={requestForBorrowingBooksColumns}
-                pageNumber={pageNumber}
-                setPageNumber={setPageNumber}
-                totalPages={data?.totalPages || 1}
-                refetchData={refetch}
-                loadingData={isPending || (searchQuery != searchQueryForApi) || (dateRange != dateRangeForApi)}
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                dateRange={dateRange}
-                setDateRange={setDateRange}
-            />
+            <div data-tour="borrow-requests-table">
+                <DataTable
+                    data={data?.requests || []}
+                    columns={requestForBorrowingBooksColumns}
+                    pageNumber={pageNumber}
+                    setPageNumber={setPageNumber}
+                    totalPages={data?.totalPages || 1}
+                    refetchData={refetch}
+                    loadingData={isPending || (searchQuery != searchQueryForApi) || (dateRange != dateRangeForApi)}
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    dateRange={dateRange}
+                    setDateRange={setDateRange}
+                />
+            </div>
         </div>
     )
 }

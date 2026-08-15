@@ -110,7 +110,7 @@ function AllFines() {
                 </div>
             ) : (
                 <>
-                    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                    <div data-tour="fines-table" className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
                                 <thead>

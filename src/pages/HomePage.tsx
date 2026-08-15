@@ -107,7 +107,7 @@ const HomePage = () => {
         <div className="p-6">
             <title>Admin Dashboard - GICCL | Library</title>
             {/* Top summary cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div data-tour="dashboard-stats" className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <div>
@@ -160,7 +160,7 @@ const HomePage = () => {
                 {/* Left column: Trends & Requests */}
                 <div className="flex flex-col gap-6">
                     {/* Borrowing Trends Chart */}
-                    <Card>
+                    <Card data-tour="dashboard-trends">
                         <CardHeader>
                             <CardTitle className="text-lg flex items-center gap-2">
                                 <TrendingUp className="w-5 h-5 text-blue-500" />
@@ -244,7 +244,7 @@ const HomePage = () => {
                     </Card>
 
                     {/* Quick Links */}
-                    <Card>
+                    <Card data-tour="dashboard-quick-actions">
                         <CardHeader>
                             <CardTitle className="text-gray-800 text-lg">Quick Actions</CardTitle>
                         </CardHeader>

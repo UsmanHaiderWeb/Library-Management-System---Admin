@@ -3,11 +3,14 @@ import { Outlet } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import { Toaster } from 'sonner'
+import TourProvider from './components/Tour/TourProvider'
 
 const App = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     return (
+        // Inside the router so the tour can react to the current route
+        <TourProvider>
         <div className='bg-bg flex relative'>
             <Toaster position="bottom-right" />
 
@@ -38,6 +41,7 @@ const App = () => {
                 <Outlet />
             </div>
         </div>
+        </TourProvider>
     )
 }
 

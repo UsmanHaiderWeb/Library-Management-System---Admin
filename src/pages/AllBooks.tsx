@@ -72,19 +72,21 @@ function AllBooks() {
     return (
         <div className="px-7 w-full pb-10">
             <title>List All Books - GICCL | Library</title>
-            <DataTable
-                data={data?.books || []}
-                columns={bookTableColumns}
-                pageNumber={pageNumber}
-                setPageNumber={setPageNumber}
-                totalPages={data?.totalPages || 1}
-                refetchData={refetch}
-                loadingData={isPending || (searchQuery != searchQueryForApi) || (dateRange != dateRangeForApi)}
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                dateRange={dateRange}
-                setDateRange={setDateRange}
-            />
+            <div data-tour="books-table">
+                <DataTable
+                    data={data?.books || []}
+                    columns={bookTableColumns}
+                    pageNumber={pageNumber}
+                    setPageNumber={setPageNumber}
+                    totalPages={data?.totalPages || 1}
+                    refetchData={refetch}
+                    loadingData={isPending || (searchQuery != searchQueryForApi) || (dateRange != dateRangeForApi)}
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    dateRange={dateRange}
+                    setDateRange={setDateRange}
+                />
+            </div>
         </div>
     )
 }

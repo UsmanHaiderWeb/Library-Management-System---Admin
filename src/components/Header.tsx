@@ -1,9 +1,10 @@
 import React from 'react';
-import { LogOut, Menu } from 'lucide-react';
+import { LogOut, Menu, Compass } from 'lucide-react';
 import { Button } from './ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getAdminDetails } from '@/lib/AxiosCalls';
+import { useTour } from './Tour/TourProvider';
 
 interface HeaderProps {
     avatarUrl?: string;
@@ -12,6 +13,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ avatarUrl = '/dummyUserImage.webp', onMenuToggle }) => {
     const navigate = useNavigate();
+    const { startTour } = useTour();
     const token = localStorage.getItem('adminToken') || '';
 
     const { data } = useQuery<{ admin: { name: string; email: string } }>({
@@ -55,6 +57,15 @@ const Header: React.FC<HeaderProps> = ({ avatarUrl = '/dummyUserImage.webp', onM
                     <span className="font-medium text-gray-800 leading-tight text-sm">{name}</span>
                     <span className="text-xs text-gray-400 -mt-0.5">{email}</span>
                 </div>
+                <Button
+                    variant='ghost'
+                    className="ml-1 h-8 w-8 sm:h-9 sm:w-9 rounded-full text-gray-400 hover:text-blue-600"
+                    onClick={() => startTour()}
+                    title="Show me around"
+                    aria-label="Show me around"
+                >
+                    <Compass className="w-4 h-4 sm:w-5 sm:h-5" />
+                </Button>
                 <Button variant='ghost' className="ml-1 sm:ml-2 h-8 w-8 sm:h-9 sm:w-9 rounded-full" onClick={handleLogout}>
                     <LogOut className="w-4 h-4 sm:w-5 sm:h-5 text-rose-400" />
                 </Button>
