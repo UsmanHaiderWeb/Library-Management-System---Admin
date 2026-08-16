@@ -52,6 +52,7 @@ function AllAccountRequests() {
 
     return (
         <div className="px-7 w-full pb-10">
+            <div data-tour="account-requests-table">
             <DataTable
                 data={data?.users || []}
                 columns={requestedAccountColumns}
@@ -63,6 +64,7 @@ function AllAccountRequests() {
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
             />
+            </div>
         </div>
     )
 }

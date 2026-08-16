@@ -66,6 +66,7 @@ function OverdueBooks() {
                 <button
                     onClick={() => triggerMutation.mutate()}
                     disabled={triggerMutation.isPending}
+                    data-tour="overdue-send"
                     className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                     {triggerMutation.isPending ? (
@@ -86,7 +87,7 @@ function OverdueBooks() {
 
             {/* Stats Cards */}
             {summary && (
-                <div className="grid grid-cols-2 gap-4 mb-6">
+                <div data-tour="overdue-stats" className="grid grid-cols-2 gap-4 mb-6">
                     <div className="bg-white rounded-lg border border-gray-200 p-4">
                         <div className="flex items-center gap-3">
                             <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
@@ -113,7 +114,7 @@ function OverdueBooks() {
             )}
 
             {/* Tabs */}
-            <div className="flex gap-1 mb-4 bg-gray-100 rounded-lg p-1 w-fit">
+            <div data-tour="overdue-tabs" className="flex gap-1 mb-4 bg-gray-100 rounded-lg p-1 w-fit">
                 <button
                     onClick={() => setActiveTab("overdue")}
                     className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === "overdue"

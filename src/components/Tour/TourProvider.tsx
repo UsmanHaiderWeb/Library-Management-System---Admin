@@ -104,7 +104,7 @@ const TourProvider = ({ children }: { children: React.ReactNode }) => {
         if (pathname !== loadedPathRef.current) isFreshLoadRef.current = false;
     }, [pathname]);
 
-    // Auto-start a chapter the student hasn't seen on this page
+    // Auto-start a chapter the admin hasn't seen on this page
     useEffect(() => {
         if (activeChapter || pendingChapterId || !userId) return;
         if (autoStartedForRef.current === pathname) return;

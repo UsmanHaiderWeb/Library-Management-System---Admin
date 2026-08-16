@@ -28,6 +28,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                 </NavLink>
                 <NavLink
                     to="/books/add-new"
+                    data-tour="nav-add-book"
                     className={({ isActive }) =>
                         `text-[15px] flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue text-white' : 'text-gray-700 hover:bg-gray-100'}`
                     }
@@ -37,6 +38,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                 </NavLink>
                 <NavLink
                     to="/analytics"
+                    data-tour="nav-analytics"
                     className={({ isActive }) =>
                         `text-[15px] flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue text-white' : 'text-gray-700 hover:bg-gray-100'}`
                     }
@@ -46,6 +48,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                 </NavLink>
                 <NavLink
                     to="/users"
+                    data-tour="nav-users"
                     className={({ isActive }) =>
                         `text-[15px] flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue text-white' : 'text-gray-700 hover:bg-gray-100'}`
                     }
@@ -65,6 +68,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                 </NavLink>
                 <NavLink
                     to="/borrowed-books"
+                    data-tour="nav-borrowed-books"
                     className={({ isActive }) =>
                         `text-[15px] flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue text-white' : 'text-gray-700 hover:bg-gray-100'}`
                     }
@@ -105,6 +109,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                 )}
                 <NavLink
                     to="/renewal-requests"
+                    data-tour="nav-renewals"
                     className={({ isActive }) =>
                         `text-[15px] flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue text-white' : 'text-gray-700 hover:bg-gray-100'}`
                     }
@@ -134,6 +139,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                 </NavLink>
                 <NavLink
                     to="/bulk-import"
+                    data-tour="nav-bulk-import"
                     className={({ isActive }) =>
                         `text-[15px] flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-blue text-white' : 'text-gray-700 hover:bg-gray-100'}`
                     }

@@ -68,7 +68,7 @@ const BulkImport = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Book Import Card */}
-                <Card className="border-dashed border-2">
+                <Card data-tour="import-books" className="border-dashed border-2">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <BookOpen className="w-5 h-5 text-blue-600" />
@@ -131,7 +131,7 @@ const BulkImport = () => {
                 </Card>
 
                 {/* User Import Card */}
-                <Card className="border-dashed border-2">
+                <Card data-tour="import-users" className="border-dashed border-2">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Users className="w-5 h-5 text-green-600" />

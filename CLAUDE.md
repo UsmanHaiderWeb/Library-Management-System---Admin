@@ -29,6 +29,15 @@ Auth token key is **`adminToken`** (the Student portal uses `token` — do not m
 
 `src/pages/Table/data-table.tsx` is the generic TanStack table (search, pagination, faceted filters from `Table/data.tsx`). **All column defs live in `src/pages/Table/columns.tsx`** (large file) — action components (mutations, dialogs) are defined alongside their columns.
 
+## Guided tour (`src/components/Tour/`)
+
+Custom-built onboarding walkthroughs — no third-party tour library. `TourProvider` (wrapped around the app in `App.tsx`) auto-starts a page's chapter the first time an admin visits it; progress is stored in localStorage **per admin id** (`storage.ts`), so a shared desk machine doesn't leak state. The Header compass button opens a dropdown listing every chapter (`useTour().availableChapters`).
+
+- **Content lives in `chapters.ts` only** — one chapter per routed page (all 12 have one) plus `NAV_STEPS`, one step per sidebar item in sidebar order, shown once alongside whichever chapter runs first.
+- Steps target elements by `data-tour="..."` attributes. A step whose target is missing is skipped automatically; nav steps are skipped below `lg` (sidebar collapses to a drawer).
+- **Every chapter's `sentinel` must sit on an element that renders even with no data** — a wrapper around the list region including its empty state, never the conditionally-rendered table itself. Getting this wrong means the chapter silently never runs on an empty library (which is exactly what a fresh hand-over is).
+- **When you add a page: add a chapter, a nav step, the sidebar `data-tour`, and the page anchors.** When you remove or feature-flag a page (see `lib/features.ts` — purchase requests are flagged off and deliberately have no chapter), remove its tour content too.
+
 ## Gotchas
 
 - Backend list responses are flat DTOs with `{ items, totalPages, totalCount }` — when adding a page, verify the exact field names against the backend service before writing the interface.

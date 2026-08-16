@@ -103,6 +103,9 @@ function AllRenewalRequests() {
                 </p>
             </div>
 
+            {/* The tour anchors the whole list region so the renewals chapter
+                still runs when the queue is empty */}
+            <div data-tour="renewals-list">
             {isPending ? (
                 <div className="flex items-center justify-center py-20">
                     <RefreshCcw className="h-6 w-6 animate-spin text-gray-400" style={{ animationDuration: "0.5s" }} />
@@ -181,6 +184,7 @@ function AllRenewalRequests() {
                     </div>
                 </div>
             )}
+            </div>
         </div>
     );
 }

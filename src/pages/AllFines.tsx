@@ -99,6 +99,9 @@ function AllFines() {
                 </div>
             </div>
 
+            {/* The tour anchors the whole list region so the fines chapter
+                still runs when the table is empty (a fresh install always is). */}
+            <div data-tour="fines-table">
             {isPending ? (
                 <div className="flex items-center justify-center py-20">
                     <RefreshCcw className="h-6 w-6 animate-spin text-gray-400" style={{ animationDuration: "0.5s" }} />
@@ -110,7 +113,7 @@ function AllFines() {
                 </div>
             ) : (
                 <>
-                    <div data-tour="fines-table" className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
                                 <thead>
@@ -213,6 +216,7 @@ function AllFines() {
                     </div>
                 </>
             )}
+            </div>
         </div>
     );
 }

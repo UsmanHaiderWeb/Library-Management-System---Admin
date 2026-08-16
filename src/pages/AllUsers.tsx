@@ -54,6 +54,7 @@ function AllUsers() {
     return (
         <div className="px-7 w-full pb-10">
             <title>List All Users - GICCL | Library</title>
+            <div data-tour="users-table">
             <DataTable
                 data={data?.users || []}
                 columns={userColumn}
@@ -70,6 +71,7 @@ function AllUsers() {
                     setPageNumber(0);
                 }}
             />
+            </div>
         </div>
     )
 }

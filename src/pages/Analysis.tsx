@@ -139,7 +139,7 @@ const Analysis = () => {
             </div>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div data-tour="analytics-summary" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <div>
@@ -218,7 +218,7 @@ const Analysis = () => {
             </Card>
 
             {/* Top Borrowed Books */}
-            <Card>
+            <Card data-tour="analytics-top-books">
                 <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
                         <BookOpen className="w-5 h-5 text-green-500" />
@@ -325,7 +325,7 @@ const Analysis = () => {
             </Card>
 
             {/* Monthly Borrowing Trend */}
-            <Card>
+            <Card data-tour="analytics-trend">
                 <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
                         <BarChart3 className="w-5 h-5 text-teal-500" />

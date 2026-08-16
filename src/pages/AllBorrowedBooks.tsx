@@ -97,6 +97,7 @@ function BorrowedBooks() {
         <div>
             <div className="px-7 w-full pb-10">
                 <title>Borrowed Books - GICCL | Library</title>
+                <div data-tour="borrowed-books-table">
                 <DataTable
                     data={data?.borrowedBooks || []}
                     columns={borrowedBooksColumns}
@@ -110,8 +111,9 @@ function BorrowedBooks() {
                     dateRange={dateRange}
                     setDateRange={setDateRange}
                 />
+                </div>
             </div>
-            <div>
+            <div data-tour="borrow-history">
                 <h2 className="text-4xl font-bold pt-10 pb-3 px-7">Borrow History</h2>
                 <BorrowedBooksHistory />
             </div>

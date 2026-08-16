@@ -85,7 +85,7 @@ function AuditLogs() {
             </div>
 
             {/* Filters */}
-            <div className="flex gap-3 mb-4">
+            <div data-tour="audit-filters" className="flex gap-3 mb-4">
                 <select
                     value={actionFilter}
                     onChange={(e) => {
@@ -118,7 +118,9 @@ function AuditLogs() {
                 </select>
             </div>
 
-            {/* Table */}
+            {/* Table — the tour anchors the whole region so the step still
+                shows when the log is empty */}
+            <div data-tour="audit-table">
             {isPending ? (
                 <div className="flex items-center justify-center py-20">
                     <RefreshCcw className="h-6 w-6 animate-spin text-gray-400" style={{ animationDuration: "0.5s" }} />
@@ -193,6 +195,7 @@ function AuditLogs() {
                     </div>
                 </>
             )}
+            </div>
         </div>
     );
 }
