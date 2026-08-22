@@ -98,6 +98,14 @@ export const approveStudentAccount = (userId: string) =>
 export const denyStudentAccount = (userId: string) =>
     api.post(`/api/admin/deny-account/${userId}`).then(r => r.data);
 
+/**
+ * Confirms a student's email on their behalf. Separate from approving the
+ * account: this only says "the address is theirs", not "this person may use
+ * the library".
+ */
+export const verifyStudentEmail = (userId: string) =>
+    api.post(`/api/admin/verify-student-email/${userId}`).then(r => r.data);
+
 // ===================== BORROW MANAGEMENT =====================
 
 export const getAllBorrowRequests = (params: { pageNumber: number; searchQuery?: string; fromDate?: string; toDate?: string }) =>

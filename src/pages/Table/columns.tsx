@@ -17,6 +17,7 @@ import { api } from "@/lib/AxiosCalls"
 import { useLocation, Link } from "react-router-dom"
 import { format } from "date-fns";
 import { AxiosError } from "axios"
+import VerifyStudentEmail from "@/components/VerifyStudentEmail";
 
 
 export const bookTableColumns: ColumnDef<BookInterface>[] = [
@@ -301,8 +302,13 @@ export const userColumn: ColumnDef<UserInfoType & { _count: { borrowedBooks: 0, 
         cell: ({ row }) => {
             const isEmailVerified = row?.original?.isEmailVerified || '';
             return (
-                <div className="flex space-x-2 justify-end">
+                <div className="flex items-center gap-2 justify-end">
                     <Badge variant="outline" className={isEmailVerified ? 'bg-[#ECFDF3] text-green-700' : `bg-pink-50 text-pink-700`}>{row?.original?.isEmailVerified ? "Verified User" : "Not Verified"}</Badge>
+                    {/* The only place an unverified student is reachable:
+                        Account Requests lists verified emails only */}
+                    {!isEmailVerified && row?.original?.id ? (
+                        <VerifyStudentEmail userId={row.original.id} email={row.original.email} />
+                    ) : null}
                 </div>
             )
         },
