@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import { Button } from "./ui/button";
 import {
     Dialog,
@@ -22,7 +22,13 @@ function DenyAccountRequest({
     onConfirm,
     userId,
 }: DenyAccountRequestProps) {
+    // Controlled so the dialog can be closed once the action has
+    // been taken. It used to have no open prop at all, so it simply
+    // stayed put after a successful approval.
+    const [open, setOpen] = useState(false);
+
     const { mutate: denyAccount, isPending } = useOptimisticRowMutation<unknown, void, { id: string }>({
+        onStart: () => setOpen(false),
         mutationFn: async () => denyStudentAccount(userId),
         queryKey: ['all-account-requests'],
         matches: (row) => row.id === userId,
@@ -34,7 +40,7 @@ function DenyAccountRequest({
     });
 
     return (
-        <Dialog modal={true}>
+        <Dialog modal={true} open={open} onOpenChange={setOpen}>
             <DialogTrigger className="p-0">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M10.0003 18.9582C5.05866 18.9582 1.04199 14.9415 1.04199 9.99984C1.04199 5.05817 5.05866 1.0415 10.0003 1.0415C14.942 1.0415 18.9587 5.05817 18.9587 9.99984C18.9587 14.9415 14.942 18.9582 10.0003 18.9582ZM10.0003 2.2915C5.75033 2.2915 2.29199 5.74984 2.29199 9.99984C2.29199 14.2498 5.75033 17.7082 10.0003 17.7082C14.2503 17.7082 17.7087 14.2498 17.7087 9.99984C17.7087 5.74984 14.2503 2.2915 10.0003 2.2915Z" fill="#EF3A4B" />

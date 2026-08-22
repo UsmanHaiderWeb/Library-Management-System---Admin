@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import { Button } from "./ui/button";
 import {
     Dialog,
@@ -22,9 +22,15 @@ function ApproveAccountRequest({
     onConfirm,
     userId,
 }: ApproveAccountRequestProps) {
+    // Controlled so the dialog can be closed once the action has
+    // been taken. It used to have no open prop at all, so it simply
+    // stayed put after a successful approval.
+    const [open, setOpen] = useState(false);
+
     // Approving takes the student out of the pending queue, so the row goes
     // immediately rather than lingering until a refetch returns.
     const { mutate: approveAccount, isPending } = useOptimisticRowMutation<unknown, void, { id: string }>({
+        onStart: () => setOpen(false),
         mutationFn: async () => approveStudentAccount(userId),
         queryKey: ['all-account-requests'],
         matches: (row) => row.id === userId,
@@ -36,7 +42,7 @@ function ApproveAccountRequest({
     });
 
     return (
-        <Dialog modal={true}>
+        <Dialog modal={true} open={open} onOpenChange={setOpen}>
             <DialogTrigger className="p-0">
                 <span className="bg-green-100 hover:bg-green-200 text-green-700 text-xs px-3 py-1 rounded-sm">Approve</span>
             </DialogTrigger>

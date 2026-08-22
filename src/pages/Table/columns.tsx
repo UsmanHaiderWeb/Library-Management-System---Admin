@@ -16,6 +16,7 @@ import { Link } from "react-router-dom"
 import { format } from "date-fns";
 import VerifyStudentEmail from "@/components/VerifyStudentEmail";
 import { useOptimisticRowMutation } from "@/lib/optimisticRow";
+import { useFrozenWhileOpen } from "@/hooks/useFrozenWhileOpen";
 
 
 export const bookTableColumns: ColumnDef<BookInterface>[] = [
@@ -628,6 +629,9 @@ export const requestForBorrowingBooksColumns: ColumnDef<AllBorrowRequestsTableIn
 
             // The book data from the current row
             const bookRequest = row.original;
+            // Held steady while the dialog animates shut, after the optimistic
+            // update has already rewritten the row underneath it
+            const shownRequest = useFrozenWhileOpen(isAlertOpen, bookRequest);
 
             // Optimistic: the badge flips as soon as the librarian clicks, and
             // goes back if the server refuses. The previous attempt built an
@@ -647,6 +651,7 @@ export const requestForBorrowingBooksColumns: ColumnDef<AllBorrowRequestsTableIn
                     );
                     return data;
                 },
+                onSuccess: () => setIsAlertOpen(false),
                 queryKey: ['borrow-requests'],
                 matches: (request) => request?.id === row?.original?.id,
                 update: { patch: (request, variables) => ({ ...request, status: variables.status }) },
@@ -677,8 +682,8 @@ export const requestForBorrowingBooksColumns: ColumnDef<AllBorrowRequestsTableIn
                                 <AlertDialogDescription>
                                     You are about to change the borrow request status for:
                                     <span className="mt-2 font-medium text-black">
-                                        <span className="block">User: {bookRequest?.user?.name}</span>
-                                        <span className="block">Student ID: {bookRequest?.user?.studentId}</span>
+                                        <span className="block">User: {shownRequest?.user?.name}</span>
+                                        <span className="block">Student ID: {shownRequest?.user?.studentId}</span>
                                     </span>
                                     <span className="block mt-3">Please select the new status below.</span>
                                 </AlertDialogDescription>
@@ -970,6 +975,7 @@ export const borrowedBooksColumns: ColumnDef<AllBorrowedBooksTableInterface>[] =
                     );
                     return data;
                 },
+                onSuccess: () => setIsAlertOpen(false),
                 queryKey: ['all-borrowed-books'],
                 matches: (book) => book?.id === row?.original?.id,
                 update: {

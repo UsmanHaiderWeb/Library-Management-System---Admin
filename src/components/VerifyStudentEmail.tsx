@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import { Button } from "./ui/button";
 import {
     Dialog,
@@ -27,8 +27,14 @@ interface Props {
  * is the only place they are visible, which is why the action lives here.
  */
 function VerifyStudentEmail({ userId, email }: Props) {
+    // Controlled so the dialog can be closed once the action has
+    // been taken. It used to have no open prop at all, so it simply
+    // stayed put after a successful approval.
+    const [open, setOpen] = useState(false);
+
 
     const { mutate, isPending } = useOptimisticRowMutation<unknown, void, { id: string; isEmailVerified: boolean }>({
+        onStart: () => setOpen(false),
         mutationFn: () => verifyStudentEmail(userId),
         queryKey: ['users'],
         matches: (row) => row.id === userId,
@@ -41,7 +47,7 @@ function VerifyStudentEmail({ userId, email }: Props) {
     });
 
     return (
-        <Dialog modal={true}>
+        <Dialog modal={true} open={open} onOpenChange={setOpen}>
             <DialogTrigger className="p-0">
                 <span className="bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-sm whitespace-nowrap">
                     Verify

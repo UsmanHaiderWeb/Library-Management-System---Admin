@@ -34,6 +34,15 @@ interface Options<TData, TVars, TRow> {
     errorMessage?: string;
     /** Other caches to refresh once settled — dashboard counters and the like. */
     alsoInvalidate?: QueryKey[];
+    /**
+     * Runs the moment the action starts, before the request is answered.
+     *
+     * Closing a confirmation dialog belongs here rather than in onSuccess: the
+     * optimistic update removes or rewrites the row immediately, and for a
+     * dialog rendered inside that row, waiting for the response means it is
+     * unmounted mid-animation instead of closing.
+     */
+    onStart?: (variables: TVars) => void;
     onSuccess?: UseMutationOptions<TData, unknown, TVars>['onSuccess'];
 }
 
@@ -80,6 +89,7 @@ export function useOptimisticRowMutation<TData, TVars, TRow>({
     successMessage,
     errorMessage = 'Something went wrong. Please try again.',
     alsoInvalidate = [],
+    onStart,
     onSuccess,
 }: Options<TData, TVars, TRow>) {
     const queryClient = useQueryClient();
@@ -88,6 +98,8 @@ export function useOptimisticRowMutation<TData, TVars, TRow>({
         mutationFn,
 
         onMutate: async (variables) => {
+            onStart?.(variables);
+
             // Without this an in-flight refetch can land after the optimistic
             // write and quietly restore the stale row
             await queryClient.cancelQueries({ queryKey });
