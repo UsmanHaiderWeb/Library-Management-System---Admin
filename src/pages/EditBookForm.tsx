@@ -176,18 +176,28 @@ const EditBookForm = () => {
     const onSubmit = async (data: BookForm) => {
         setIsBookUpdating(true);
 
-        let authParams;
-        try {
-            authParams = await authenticator();
-        } catch (authError) {
-            console.error("Failed to authenticate for upload:", authError);
-            setIsBookUpdating(false);
-            return;
+        // Only ask ImageKit for an upload token when there is actually
+        // something to upload. Requesting it unconditionally meant that
+        // changing a title -- no new cover, no new PDF -- failed outright
+        // wherever ImageKit was not configured, and failed silently at that.
+        const newCover = data.image instanceof File ? data.image : null;
+        const newPdf = data.isOnline && data.onlineFile instanceof File ? data.onlineFile : null;
+
+        let authParams = null;
+        if (newCover || newPdf) {
+            try {
+                authParams = await authenticator();
+            } catch (authError) {
+                console.error("Failed to authenticate for upload:", authError);
+                toast.error("Could not start the file upload. Check the ImageKit settings, or save without changing the cover.");
+                setIsBookUpdating(false);
+                return;
+            }
         }
 
         let imageUploadResponse;
-        if (data.image instanceof File) {
-            imageUploadResponse = await handleUpload(data.image, authParams);
+        if (newCover) {
+            imageUploadResponse = await handleUpload(newCover, authParams);
             if (!imageUploadResponse) {
                 setIsBookUpdating(false);
                 return;
@@ -195,8 +205,8 @@ const EditBookForm = () => {
         }
 
         let PDF_UploadResponse;
-        if (data.isOnline && data.onlineFile instanceof File) {
-            PDF_UploadResponse = await handleUpload(data.onlineFile, authParams);
+        if (newPdf) {
+            PDF_UploadResponse = await handleUpload(newPdf, authParams);
             if (!PDF_UploadResponse) {
                 setIsBookUpdating(false);
                 return;

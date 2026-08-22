@@ -175,12 +175,17 @@ const AddNewBookForm = () => {
     const onSubmit = async (data: BookForm) => {
         setIsBookCreating(true);
 
-        // Retrieve authentication parameters for the upload.
+        // A new book always carries a cover, so the upload token is genuinely
+        // needed here -- unlike editing. What was missing is any sign of
+        // failure: this returned silently and the form simply stopped.
         let authParams;
         try {
             authParams = await authenticator();
         } catch (authError) {
             console.error("Failed to authenticate for upload:", authError);
+            toast.error("Could not start the file upload. Check the ImageKit settings in the server's .env.", {
+                icon: <X stroke='red' />
+            });
             setIsBookCreating(false);
             return;
         }
