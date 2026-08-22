@@ -297,13 +297,8 @@ export const userColumn: ColumnDef<UserInfoType & { _count: { borrowedBooks: 0, 
         cell: ({ row }) => {
             const isEmailVerified = row?.original?.isEmailVerified || '';
             return (
-                <div className="flex items-center gap-2 justify-end">
+                <div className="flex space-x-2 justify-end">
                     <Badge variant="outline" className={isEmailVerified ? 'bg-[#ECFDF3] text-green-700' : `bg-pink-50 text-pink-700`}>{row?.original?.isEmailVerified ? "Verified User" : "Not Verified"}</Badge>
-                    {/* The only place an unverified student is reachable:
-                        Account Requests lists verified emails only */}
-                    {!isEmailVerified && row?.original?.id ? (
-                        <VerifyStudentEmail userId={row.original.id} email={row.original.email} />
-                    ) : null}
                 </div>
             )
         },
@@ -392,6 +387,13 @@ export const UserActions = ({ row }: { row: any }) => {
             >
                 Change Role
             </Button>
+
+            {/* Only offered while it is still needed. This table is the only
+                place an unverified student is reachable at all -- Account
+                Requests lists verified emails only. */}
+            {!user?.isEmailVerified && user?.id ? (
+                <VerifyStudentEmail userId={user.id} email={user.email} />
+            ) : null}
 
             <AlertDialog open={isRoleAlertOpen} onOpenChange={setIsRoleAlertOpen}>
                 <AlertDialogContent>
