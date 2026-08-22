@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ChangeEvent, memo, useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -17,6 +17,8 @@ import { toast } from 'sonner';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Wand2, Loader2 } from 'lucide-react';
 import { useCoverColor, DEFAULT_COVER_COLOR } from '@/hooks/useCoverColor';
+import { useObjectUrl } from '@/hooks/useObjectUrl';
+import BookCoverUpload from '@/components/BookCoverUpload';
 
 const bookSchema = z.object({
     bookNumber: z.string().min(1, 'Book number is required'),
@@ -102,6 +104,9 @@ const EditBookForm = () => {
 
     const { isPickingColor, colorWasAutoPicked, pickColorFromCover } =
         useCoverColor((hex) => setValue('bgColor', hex, { shouldValidate: true }));
+
+    const coverFile = watch('image') as File | undefined;
+    const coverPreviewUrl = useObjectUrl(coverFile) || existingImage;
 
     // Fetch book details
     const { data: bookData } = useQuery({
@@ -257,9 +262,11 @@ const EditBookForm = () => {
                     name='image'
                     control={control}
                     render={({ field }) => (
-                        <Input type="file" accept="image/*" disabled={mutation.isPending || isBookUpdating}
-                            onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                                const file = e?.target?.files?.[0];
+                        <BookCoverUpload
+                            value={field.value}
+                            existingUrl={existingImage}
+                            disabled={mutation.isPending || isBookUpdating}
+                            onChange={(file) => {
                                 field.onChange(file);
                                 // Re-derive the spine colour when the cover is replaced
                                 pickColorFromCover(file);
@@ -314,14 +321,14 @@ const EditBookForm = () => {
                 {errors.bgColor && <p className='text-sm text-red-500'>{errors.bgColor.message}</p>}
             </div>
 
-            {(watch('image') || existingImage) && (<>
+            {coverPreviewUrl && (<>
                 <div className="mb-2">
                     <label className="block mb-1 font-medium">Book Preview</label>
                 </div>
                 <div className='mb-5'>
                     <BookPreview
                         coverColor={watch('bgColor')}
-                        coverImage={watch('image') ? URL.createObjectURL(watch('image')) : existingImage}
+                        coverImage={coverPreviewUrl}
                     />
                 </div>
             </>)}

@@ -44,3 +44,4 @@ Custom-built onboarding walkthroughs — no third-party tour library. `TourProvi
 - Dates from the API can be null (`dueDate` especially) — guard before `format()`/`new Date()`.
 - After a mutation, invalidate the page's query key (`queryClient.invalidateQueries`).
 - No test setup exists in this repo (known gap).
+- Book covers are painted with `object-fill` into the spine SVG's image slot, so they are **cropped before upload**: `BookCoverUpload` → `ImageCropModal` (`react-easy-crop`, ported from `ticketly-shared-ui`) → fixed 1000×1400 JPEG → ImageKit. The ratio and output size live in `src/lib/bookCover.ts` and are derived from the SVG viewBox — if the `BookCover` artwork or its slot percentages change, update that file, nothing else.

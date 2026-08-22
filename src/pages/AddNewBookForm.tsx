@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ChangeEvent, memo, useState } from 'react';
+import { memo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -20,6 +20,8 @@ import {
 import { toast } from 'sonner';
 import { X, Wand2, Loader2 } from 'lucide-react';
 import { useCoverColor, DEFAULT_COVER_COLOR } from '@/hooks/useCoverColor';
+import { useObjectUrl } from '@/hooks/useObjectUrl';
+import BookCoverUpload from '@/components/BookCoverUpload';
 
 const bookSchema = z.object({
     bookNumber: z.string().min(1, 'Book number is required'),
@@ -28,7 +30,9 @@ const bookSchema = z.object({
     summary: z.string().min(1, 'Summary is required'),
     author: z.string().min(1, 'Please provide author name'),
     genre: z.string().min(1, 'Please enter some genres for the book'),
-    image: z.any(),
+    // `: boolean` stops TS inferring a type predicate, which would make the
+    // resolver's output type differ from the form's input type.
+    image: z.any().refine((f): boolean => f instanceof File, 'Book cover image is required'),
     bgColor: z.string().min(1, 'Please Choose or enter Primary color'),
     totalBooks: z.string().min(1, "Total number of books is required"),
     almirahNumber: z.string().min(1, "Almirah Number is required"),
@@ -107,6 +111,9 @@ const AddNewBookForm = () => {
 
     const { isPickingColor, colorWasAutoPicked, pickColorFromCover } =
         useCoverColor((hex) => setValue('bgColor', hex, { shouldValidate: true }));
+
+    const coverFile = watch('image') as File | undefined;
+    const coverPreviewUrl = useObjectUrl(coverFile);
 
     const mutation = useMutation({
         mutationKey: ["add new book"],
@@ -269,11 +276,12 @@ const AddNewBookForm = () => {
                     name='image'
                     control={control}
                     render={({ field }) => (
-                        <Input type="file" accept="image/*" disabled={mutation.isPending || isBookCreating}
-                            onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                                const file = e?.target?.files?.[0];
+                        <BookCoverUpload
+                            value={field.value}
+                            disabled={mutation.isPending || isBookCreating}
+                            onChange={(file) => {
                                 field.onChange(file);
-                                // Derive the spine colour from the cover the moment it is chosen
+                                // Derive the spine colour from the cropped cover the moment it is chosen
                                 pickColorFromCover(file);
                             }}
                         />
@@ -330,14 +338,14 @@ const AddNewBookForm = () => {
                 )}
             </div>
 
-            {watch('image') && (<>
+            {coverPreviewUrl && (<>
                 <div className="mb-2">
                     <label className="block mb-1 font-medium">Book Preview</label>
                 </div>
                 <div className='mb-5'>
                     <BookPreview
                         coverColor={watch('bgColor')}
-                        coverImage={watch('image') ? URL.createObjectURL(watch('image')) : "https://i.ytimg.com/vi/vS_1611qc0M/hq720.jpg?sqp=-oaymwEnCNAFEJQDSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLAWGacPUF3-749Nzu0TFP7m-6xG-A"}
+                        coverImage={coverPreviewUrl}
                     />
                 </div>
             </>)}
