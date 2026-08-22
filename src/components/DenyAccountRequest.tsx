@@ -11,8 +11,7 @@ import {
 } from "./ui/dialog";
 import { RefreshCcw } from "lucide-react";
 import { denyStudentAccount } from "@/lib/AxiosCalls";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useOptimisticRowMutation } from "@/lib/optimisticRow";
 
 interface DenyAccountRequestProps {
     userId: string,
@@ -23,23 +22,16 @@ function DenyAccountRequest({
     onConfirm,
     userId,
 }: DenyAccountRequestProps) {
-    const queryClient = useQueryClient();
-    const { mutate: denyAccount, isPending } = useMutation({
-        mutationFn: async () => {
-            const token = localStorage.getItem("adminToken") || '';
-            if (!token) throw new Error("No authentication token found");
-            return denyStudentAccount(userId);
-        },
-        onSuccess: () => {
-            toast.success("Student account request denied successfully");
-            queryClient.invalidateQueries({ queryKey: ['all-account-requests'] });
-            onConfirm?.();
-        },
-        onError: (error) => {
-            toast.error(error.message || "Failed to deny student account");
-        },
+    const { mutate: denyAccount, isPending } = useOptimisticRowMutation<unknown, void, { id: string }>({
+        mutationFn: async () => denyStudentAccount(userId),
+        queryKey: ['all-account-requests'],
+        matches: (row) => row.id === userId,
+        update: { remove: true },
+        successMessage: "Student account request denied successfully",
+        errorMessage: "Failed to deny student account",
+        alsoInvalidate: [['users'], ['dashboard-stats']],
+        onSuccess: () => onConfirm?.(),
     });
-
 
     return (
         <Dialog modal={true}>

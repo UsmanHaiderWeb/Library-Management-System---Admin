@@ -7,17 +7,15 @@ import { DataTableColumnHeader } from "./data-table-column-header"
 import { AllBorrowedBooksTableInterface, AllBorrowRequestsTableInterface, BookInterface, UserInfoType, PurchaseRequestInterface } from "@/lib/types&interfaces"
 import DenyAccountRequest from "@/components/DenyAccountRequest"
 import ApproveAccountRequest from "@/components/ApproveAccountRequest"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 import { AlertDialogCancel, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogContent, AlertDialogDescription, AlertDialog } from "@/components/ui/alert-dialog"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { CheckCircle, X } from "lucide-react"
+import { X } from "lucide-react"
 import { api } from "@/lib/AxiosCalls"
-import { useLocation, Link } from "react-router-dom"
+import { Link } from "react-router-dom"
 import { format } from "date-fns";
-import { AxiosError } from "axios"
 import VerifyStudentEmail from "@/components/VerifyStudentEmail";
+import { useOptimisticRowMutation } from "@/lib/optimisticRow";
 
 
 export const bookTableColumns: ColumnDef<BookInterface>[] = [
@@ -173,24 +171,21 @@ export const bookTableColumns: ColumnDef<BookInterface>[] = [
 
 export const BookActions = ({ row }: { row: any }) => {
     const [isAlertOpen, setIsAlertOpen] = useState(false);
-    const queryClient = useQueryClient();
     const book = row.original;
 
-    const deleteBookMutation = useMutation({
+    // 'books' is the table's key; 'all-books' is the dashboard's recent list.
+    // Only one of them was being invalidated before.
+    const deleteBookMutation = useOptimisticRowMutation<unknown, void, BookInterface>({
         mutationFn: async () => {
-            const token = localStorage.getItem("adminToken");
-            await api.delete(`/api/books/delete/${book.id}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await api.delete(`/api/books/delete/${book.id}`);
         },
-        onSuccess: () => {
-            toast.success("Book deleted successfully");
-            queryClient.invalidateQueries({ queryKey: ['all-books'] });
-            setIsAlertOpen(false);
-        },
-        onError: (error: any) => {
-            toast.error(error.response?.data?.message || "Failed to delete book");
-        }
+        queryKey: ['books'],
+        matches: (b) => b?.id === book.id,
+        update: { remove: true },
+        successMessage: 'Book deleted successfully',
+        errorMessage: 'Failed to delete book',
+        alsoInvalidate: [['all-books'], ['dashboard-stats']],
+        onSuccess: () => setIsAlertOpen(false),
     });
 
     return (
@@ -373,25 +368,18 @@ export const userColumn: ColumnDef<UserInfoType & { _count: { borrowedBooks: 0, 
 
 export const UserActions = ({ row }: { row: any }) => {
     const [isRoleAlertOpen, setIsRoleAlertOpen] = useState(false);
-    const queryClient = useQueryClient();
     const user = row.original;
 
-    const updateRoleMutation = useMutation({
+    const updateRoleMutation = useOptimisticRowMutation<unknown, string, UserInfoType>({
         mutationFn: async (newRole: string) => {
-            const token = localStorage.getItem("adminToken");
-            await api.patch(`/api/admin/update-user-role/${user.id}`,
-                { role: newRole },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            await api.patch(`/api/admin/update-user-role/${user.id}`, { role: newRole });
         },
-        onSuccess: () => {
-            toast.success("User role updated successfully");
-            queryClient.invalidateQueries({ queryKey: ['users'] });
-            setIsRoleAlertOpen(false);
-        },
-        onError: (error: any) => {
-            toast.error(error.response?.data?.message || "Failed to update role");
-        }
+        queryKey: ['users'],
+        matches: (u) => u?.id === user.id,
+        update: { patch: (u, newRole) => ({ ...u, role: newRole as UserInfoType['role'] }) },
+        successMessage: 'User role updated successfully',
+        errorMessage: 'Failed to update role',
+        onSuccess: () => setIsRoleAlertOpen(false),
     });
 
     return (
@@ -635,93 +623,34 @@ export const requestForBorrowingBooksColumns: ColumnDef<AllBorrowRequestsTableIn
         cell: ({ row }) => {
             // State to control the visibility of the alert dialog
             const [isAlertOpen, setIsAlertOpen] = useState(false);
-            const queryClient = useQueryClient();
-            const { state }: { state: { pageNumber: number, searchQuery: string } } = useLocation();
 
             // The book data from the current row
             const bookRequest = row.original;
 
-            const changeBookStatusMutation = useMutation({
-                mutationKey: ['change-borrow-book-status', bookRequest.id],
-                // The mutation function now accepts an object with the status
-                mutationFn: async (variables: { status: 'accepted' | 'rejected' }) => {
-                    const token = localStorage.getItem("adminToken");
-                    const { data } = await api.post(`/api/admin/borrow-requests/change-status/${bookRequest.id}`,
+            // Optimistic: the badge flips as soon as the librarian clicks, and
+            // goes back if the server refuses. The previous attempt built an
+            // exact query key by hand -- ['borrow-requests', page, search] --
+            // while the real key also carries the date range, so setQueryData
+            // never matched anything and the row simply never changed.
+            const changeBookStatusMutation = useOptimisticRowMutation<
+                { status: string },
+                { status: 'accepted' | 'rejected' },
+                AllBorrowRequestsTableInterface
+            >({
+                mutationFn: async (variables) => {
+                    const { data } = await api.post(
+                        `/api/admin/borrow-requests/change-status/${bookRequest.id}`,
                         { status: variables.status },
-                        {
-                            headers: {
-                                Authorization: `Bearer ${token}`
-                            },
-                            withCredentials: true,
-                        }
+                        { withCredentials: true },
                     );
-                    console.log("return response: ", data);
                     return data;
                 },
-                onError: (error) => {
-                    console.error("Mutation Error:", error);
-                    toast.error("Something went wrong. Please try again.", {
-                        icon: <X stroke="red" />,
-                    });
-                },
-                onSuccess: (data: { status: string }) => {
-                    console.log("data: ", data);
-                    toast.success("Book status updated successfully!", {
-                        icon: <CheckCircle stroke="green" />,
-                    });
-
-                    // update the borrow request status with your actual query key
-                    queryClient.setQueryData(
-                        ['borrow-requests', state?.pageNumber || 0, state?.searchQuery || 'nothing to query'],
-                        (oldData: { totalPages: number, requests: AllBorrowRequestsTableInterface[] }) => {
-
-                            if (oldData?.requests && oldData?.requests.length) {
-                                const newData = oldData?.requests.map((request: AllBorrowRequestsTableInterface) => {
-                                    if (request?.id == row?.original?.id) {
-                                        return {
-                                            ...request,
-                                            status: data?.status,
-                                        }
-                                    } else return request;
-                                })
-                                return {
-                                    totalPages: oldData?.totalPages,
-                                    requests: newData
-                                };
-                            }
-                            return oldData;
-                        }
-                    );
-                    console.log("state?.searchQuery || state?.searchQuery != 'nothing to query': ", state?.searchQuery && state?.searchQuery != 'nothing to query');
-                    console.log("state?.searchQuery", state?.searchQuery);
-                    if (state?.searchQuery && state?.searchQuery != 'nothing to query') {
-                        // queryClient.setQueryData(
-                        //     ['borrow-requests', 0, 'nothing to query'],
-                        //     (oldData: { totalPages: number, requests: AllBorrowRequestsTableInterface[] }) => {
-
-                        //         if (oldData?.requests && oldData?.requests.length) {
-                        //             const newData = oldData?.requests.map((request: AllBorrowRequestsTableInterface) => {
-                        //                 if (request?.id == row?.original?.id) {
-                        //                     return {
-                        //                         ...request,
-                        //                         status: data?.status,
-                        //                     }
-                        //                 } else return request;
-                        //             })
-                        //             return {
-                        //                 totalPages: oldData?.totalPages,
-                        //                 requests: newData
-                        //             };
-                        //         }
-                        //         return oldData;
-                        //     }
-                        // );
-
-                        queryClient.invalidateQueries({ queryKey: ['borrow-requests', 0, 'nothing to query'] }); // Replace with your actual query key
-                    }
-
-                    setIsAlertOpen(false); // Close the dialog on success
-                },
+                queryKey: ['borrow-requests'],
+                matches: (request) => request?.id === row?.original?.id,
+                update: { patch: (request, variables) => ({ ...request, status: variables.status }) },
+                successMessage: 'Book status updated successfully!',
+                // Approving hands out a copy, so these move too
+                alsoInvalidate: [['all-borrowed-books'], ['dashboard-stats'], ['books']],
             });
 
             return (
@@ -849,39 +778,31 @@ export const purchaseRequestColumns: ColumnDef<PurchaseRequestInterface>[] = [
 ];
 
 export const PurchaseRequestActions = ({ row }: { row: any }) => {
-    const queryClient = useQueryClient();
     const request = row.original;
 
-    const updateStatusMutation = useMutation({
-        mutationFn: async (newStatus: string) => {
-            const token = localStorage.getItem("adminToken");
-            await api.post(`/api/admin/purchase-requests/${request.id}/status`, { status: newStatus }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+    type PurchaseStatus = PurchaseRequestInterface['status'];
+    const updateStatusMutation = useOptimisticRowMutation<unknown, PurchaseStatus, PurchaseRequestInterface>({
+        mutationFn: async (newStatus: PurchaseStatus) => {
+            await api.post(`/api/admin/purchase-requests/${request.id}/status`, { status: newStatus });
         },
-        onSuccess: () => {
-            toast.success("Request status updated");
-            queryClient.invalidateQueries({ queryKey: ['purchase-requests'] });
-        },
-        onError: (err: any) => {
-            toast.error(err.response?.data?.message || "Failed to update status");
-        }
+        queryKey: ['purchase-requests'],
+        matches: (r) => r?.id === request.id,
+        update: { patch: (r, newStatus) => ({ ...r, status: newStatus }) },
+        successMessage: 'Request status updated',
+        errorMessage: 'Failed to update status',
+        alsoInvalidate: [['dashboard-stats']],
     });
 
-    const deleteMutation = useMutation({
+    const deleteMutation = useOptimisticRowMutation<unknown, void, PurchaseRequestInterface>({
         mutationFn: async () => {
-            const token = localStorage.getItem("adminToken");
-            await api.delete(`/api/admin/purchase-request/${request.id}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await api.delete(`/api/admin/purchase-request/${request.id}`);
         },
-        onSuccess: () => {
-            toast.success("Request deleted");
-            queryClient.invalidateQueries({ queryKey: ['purchase-requests'] });
-        },
-        onError: (err: any) => {
-            toast.error(err.response?.data?.message || "Failed to delete request");
-        }
+        queryKey: ['purchase-requests'],
+        matches: (r) => r?.id === request.id,
+        update: { remove: true },
+        successMessage: 'Request deleted',
+        errorMessage: 'Failed to delete request',
+        alsoInvalidate: [['dashboard-stats']],
     });
 
     return (
@@ -1028,70 +949,37 @@ export const borrowedBooksColumns: ColumnDef<AllBorrowedBooksTableInterface>[] =
         cell: ({ row }) => {
             // State to control the visibility of the alert dialog
             const [isAlertOpen, setIsAlertOpen] = useState(false);
-            const queryClient = useQueryClient();
-            const { state } = useLocation();
 
             // The book data from the current row
             const borrowedBook = row.original;
 
-            const changeBookStatusMutation = useMutation({
-                mutationKey: ['change-borrowed-book-status', borrowedBook.id],
-                // The mutation function now accepts an object with the status
-                mutationFn: async (variables: { status: 'returned' }) => {
-                    const token = localStorage.getItem("adminToken");
-                    const { data } = await api.post(`/api/admin/borrowed-books/${borrowedBook?.id}/change-status`,
+            // Same fix as the borrow-requests table: match the cache by prefix
+            // instead of rebuilding an exact key that never lined up.
+            const changeBookStatusMutation = useOptimisticRowMutation<
+                { status: string; returnedOn: string },
+                { status: 'returned' },
+                AllBorrowedBooksTableInterface
+            >({
+                mutationFn: async (variables) => {
+                    const { data } = await api.post(
+                        `/api/admin/borrowed-books/${borrowedBook?.id}/change-status`,
                         { status: variables.status },
-                        {
-                            headers: {
-                                Authorization: `Bearer ${token}`
-                            },
-                            withCredentials: true,
-                        }
+                        { withCredentials: true },
                     );
-
                     return data;
                 },
-                onError: (error: AxiosError<{ message: string }>) => {
-                    console.error("Mutation Error:", error.response?.data?.message);
-                    toast.error(error.response?.data?.message || "Something went wrong. Please try again.", {
-                        icon: <X stroke="red" />,
-                    });
+                queryKey: ['all-borrowed-books'],
+                matches: (book) => book?.id === row?.original?.id,
+                update: {
+                    patch: (book, variables) => ({
+                        ...book,
+                        status: variables.status,
+                        returnedOn: new Date().toISOString(),
+                    }),
                 },
-                onSuccess: (data: { status: string, returnedOn: string }) => {
-                    toast.success("Book status updated successfully!", {
-                        icon: <CheckCircle stroke="green" />,
-                    });
-
-                    // update the borrowed book status with your actual query key
-                    queryClient.setQueryData(
-                        ['all-borrowed-books', state?.pageNumber || 0, state?.searchQuery || 'nothing to query'],
-                        (oldData: { totalPages: number, borrowedBooks: AllBorrowedBooksTableInterface[] }) => {
-
-                            if (oldData?.borrowedBooks && oldData?.borrowedBooks.length) {
-                                const newData = oldData?.borrowedBooks.map((borrowedBook: AllBorrowedBooksTableInterface) => {
-                                    if (borrowedBook?.id == row?.original?.id) {
-                                        return {
-                                            ...borrowedBook,
-                                            returnedOn: data?.returnedOn,
-                                            status: data?.status,
-                                        }
-                                    } else return borrowedBook;
-                                })
-                                return {
-                                    totalPages: oldData?.totalPages,
-                                    borrowedBooks: newData
-                                };
-                            }
-                            return oldData;
-                        }
-                    );
-
-                    if (state?.searchQuery && state?.searchQuery != 'nothing to query') {
-                        queryClient.invalidateQueries({ queryKey: ['all-borrowed-books', 0, 'nothing to query'] });
-                    }
-
-                    setIsAlertOpen(false); // Close the dialog on success
-                },
+                successMessage: 'Book status updated successfully!',
+                // A return frees a copy and can raise a fine
+                alsoInvalidate: [['fines'], ['dashboard-stats'], ['books'], ['overdue-summary']],
             });
 
             return (

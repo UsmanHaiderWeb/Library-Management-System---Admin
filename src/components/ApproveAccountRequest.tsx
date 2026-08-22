@@ -11,8 +11,7 @@ import {
 } from "./ui/dialog";
 import { RefreshCcw } from "lucide-react";
 import { approveStudentAccount } from "@/lib/AxiosCalls";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useOptimisticRowMutation } from "@/lib/optimisticRow";
 
 interface ApproveAccountRequestProps {
     userId: string,
@@ -23,21 +22,17 @@ function ApproveAccountRequest({
     onConfirm,
     userId,
 }: ApproveAccountRequestProps) {
-    const queryClient = useQueryClient();
-    const { mutate: approveAccount, isPending } = useMutation({
-        mutationFn: async () => {
-            const token = localStorage.getItem("adminToken") || '';
-            if (!token) throw new Error("No authentication token found");
-            return approveStudentAccount(userId);
-        },
-        onSuccess: () => {
-            toast.success("Student account request approved successfully");
-            queryClient.invalidateQueries({ queryKey: ['all-account-requests'] });
-            onConfirm?.();
-        },
-        onError: (error) => {
-            toast.error(error.message || "Failed to approve student account");
-        },
+    // Approving takes the student out of the pending queue, so the row goes
+    // immediately rather than lingering until a refetch returns.
+    const { mutate: approveAccount, isPending } = useOptimisticRowMutation<unknown, void, { id: string }>({
+        mutationFn: async () => approveStudentAccount(userId),
+        queryKey: ['all-account-requests'],
+        matches: (row) => row.id === userId,
+        update: { remove: true },
+        successMessage: "Student account request approved successfully",
+        errorMessage: "Failed to approve student account",
+        alsoInvalidate: [['users'], ['dashboard-stats']],
+        onSuccess: () => onConfirm?.(),
     });
 
     return (

@@ -1,9 +1,9 @@
 import { memo, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/AxiosCalls";
-import { toast } from "sonner";
 import { format } from "date-fns";
 import { RefreshCcw } from "lucide-react";
+import { useOptimisticRowMutation } from "@/lib/optimisticRow";
 
 interface RenewalRequest {
     id: string;
@@ -24,7 +24,6 @@ const statusStyles: Record<string, string> = {
 
 function AllRenewalRequests() {
     const token = localStorage.getItem("adminToken") || "";
-    const queryClient = useQueryClient();
     const [actionInProgress, setActionInProgress] = useState<string | null>(null);
 
     const { data, isPending } = useQuery<{ renewalRequests: RenewalRequest[] }>({
@@ -40,46 +39,34 @@ function AllRenewalRequests() {
         refetchOnWindowFocus: false,
     });
 
-    const approveMutation = useMutation({
+    const approveMutation = useOptimisticRowMutation<unknown, string, RenewalRequest>({
         mutationFn: async (requestId: string) => {
             setActionInProgress(requestId);
-            const { data } = await api.post(
-                `/api/admin/renewal-requests/${requestId}/approve`,
-                {},
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            const { data } = await api.post(`/api/admin/renewal-requests/${requestId}/approve`, {});
             return data;
         },
-        onSuccess: () => {
-            toast.success("Renewal request approved successfully");
-            queryClient.invalidateQueries({ queryKey: ["renewal-requests"] });
-            setActionInProgress(null);
-        },
-        onError: (error: Error) => {
-            toast.error(error.message || "Failed to approve renewal request");
-            setActionInProgress(null);
-        },
+        queryKey: ["renewal-requests"],
+        matches: (request, requestId) => request?.id === requestId,
+        update: { patch: (request) => ({ ...request, status: "APPROVED" }) },
+        successMessage: "Renewal request approved successfully",
+        errorMessage: "Failed to approve renewal request",
+        alsoInvalidate: [["all-borrowed-books"], ["dashboard-stats"]],
+        onSuccess: () => setActionInProgress(null),
     });
 
-    const rejectMutation = useMutation({
+    const rejectMutation = useOptimisticRowMutation<unknown, string, RenewalRequest>({
         mutationFn: async (requestId: string) => {
             setActionInProgress(requestId);
-            const { data } = await api.post(
-                `/api/admin/renewal-requests/${requestId}/reject`,
-                {},
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            const { data } = await api.post(`/api/admin/renewal-requests/${requestId}/reject`, {});
             return data;
         },
-        onSuccess: () => {
-            toast.success("Renewal request rejected");
-            queryClient.invalidateQueries({ queryKey: ["renewal-requests"] });
-            setActionInProgress(null);
-        },
-        onError: (error: Error) => {
-            toast.error(error.message || "Failed to reject renewal request");
-            setActionInProgress(null);
-        },
+        queryKey: ["renewal-requests"],
+        matches: (request, requestId) => request?.id === requestId,
+        update: { patch: (request) => ({ ...request, status: "REJECTED" }) },
+        successMessage: "Renewal request rejected",
+        errorMessage: "Failed to reject renewal request",
+        alsoInvalidate: [["all-borrowed-books"], ["dashboard-stats"]],
+        onSuccess: () => setActionInProgress(null),
     });
 
     const requests = data?.renewalRequests || [];

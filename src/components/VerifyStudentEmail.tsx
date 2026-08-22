@@ -11,8 +11,7 @@ import {
 } from "./ui/dialog";
 import { RefreshCcw, MailCheck } from "lucide-react";
 import { verifyStudentEmail } from "@/lib/AxiosCalls";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useOptimisticRowMutation } from "@/lib/optimisticRow";
 
 interface Props {
     userId: string;
@@ -28,21 +27,17 @@ interface Props {
  * is the only place they are visible, which is why the action lives here.
  */
 function VerifyStudentEmail({ userId, email }: Props) {
-    const queryClient = useQueryClient();
 
-    const { mutate, isPending } = useMutation({
+    const { mutate, isPending } = useOptimisticRowMutation<unknown, void, { id: string; isEmailVerified: boolean }>({
         mutationFn: () => verifyStudentEmail(userId),
-        onSuccess: () => {
-            toast.success("Email verified. The student can borrow once their account is approved.");
-            queryClient.invalidateQueries({ queryKey: ['users'] });
-            queryClient.invalidateQueries({ queryKey: ['all-account-requests'] });
-        },
-        onError: (error: unknown) => {
-            const message =
-                (error as { response?: { data?: { message?: string } } })?.response?.data?.message
-                || "Failed to verify this email";
-            toast.error(message);
-        },
+        queryKey: ['users'],
+        matches: (row) => row.id === userId,
+        // The badge and this button both key off isEmailVerified, so the row
+        // settles into its verified state without waiting for a refetch
+        update: { patch: (row) => ({ ...row, isEmailVerified: true }) },
+        successMessage: "Email verified. The student can borrow once their account is approved.",
+        errorMessage: "Failed to verify this email",
+        alsoInvalidate: [['all-account-requests'], ['dashboard-stats']],
     });
 
     return (

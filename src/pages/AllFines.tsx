@@ -1,10 +1,9 @@
 import { memo, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/AxiosCalls";
-import { toast } from "sonner";
 import { format } from "date-fns";
 import { ChevronLeft, ChevronRight, RefreshCcw, Check, HandCoins } from "lucide-react";
-import { AxiosError } from "axios";
+import { useOptimisticRowMutation } from "@/lib/optimisticRow";
 
 interface FineTransaction {
     id: string;
@@ -29,7 +28,6 @@ const statusStyles: Record<string, string> = {
 
 function AllFines() {
     const token = localStorage.getItem("adminToken") || "";
-    const queryClient = useQueryClient();
     const [pageNumber, setPageNumber] = useState(0);
     const [actionInProgress, setActionInProgress] = useState<string | null>(null);
 
@@ -46,25 +44,31 @@ function AllFines() {
         refetchOnWindowFocus: false,
     });
 
-    const settleMutation = useMutation({
-        mutationFn: async ({ fineId, outcome }: { fineId: string; outcome: "pay" | "waive" }) => {
+    const settleMutation = useOptimisticRowMutation<
+        { message?: string },
+        { fineId: string; outcome: "pay" | "waive" },
+        FineTransaction
+    >({
+        mutationFn: async ({ fineId, outcome }) => {
             setActionInProgress(fineId);
-            const { data } = await api.patch(
-                `/api/admin/fines/${fineId}/${outcome}`,
-                {},
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            const { data } = await api.patch(`/api/admin/fines/${fineId}/${outcome}`, {});
             return data;
         },
-        onSuccess: (data) => {
-            toast.success(data.message || "Fine updated");
-            queryClient.invalidateQueries({ queryKey: ["fines"] });
-            setActionInProgress(null);
+        queryKey: ["fines"],
+        matches: (fine, { fineId }) => fine?.id === fineId,
+        // The badge flips to PAID/WAIVED at once; settling also clears the
+        // student's outstanding balance for this fine.
+        update: {
+            patch: (fine, { outcome }) => ({
+                ...fine,
+                status: outcome === "pay" ? "PAID" : "WAIVED",
+                paidAt: new Date().toISOString(),
+            }),
         },
-        onError: (error: AxiosError<{ message?: string }>) => {
-            toast.error(error.response?.data?.message || "Failed to update fine");
-            setActionInProgress(null);
-        },
+        successMessage: (data) => data?.message || "Fine updated",
+        errorMessage: "Failed to update fine",
+        alsoInvalidate: [["dashboard-stats"], ["users"]],
+        onSuccess: () => setActionInProgress(null),
     });
 
     const handleSettle = (fine: FineTransaction, outcome: "pay" | "waive") => {
